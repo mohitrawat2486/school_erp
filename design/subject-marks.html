@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Subject Marks</title><link href="style.css" rel="stylesheet"/></head>
+<body><div class="app"><aside class="sidebar"><div class="brand-wrap"><img alt="School logo" class="brand-logo" src="school-logo.png"/><div class="brand-copy"><div class="brand">School Results</div><div class="sub">St. Anthony's Public School<br/><b>Subject Teacher</b></div></div></div><nav class="nav"><a class="" href="subject-teacher-dashboard.html">Dashboard</a><a class="active" href="subject-marks.html">Marks Entry</a><a class="" href="subject-performance.html">Subject Performance</a><a class="" href="marks-import.html">Import Marks</a></nav></aside>
+<main class="main"><header class="topbar"><div><b>Academic Session: 2026-2027</b></div><div>Subject Teacher ▾   <a href="login.html" style="color:#4f46e5">Logout</a></div></header>
+<div class="marks-student-workspace">
+
+
+
+
+<div id="marksListView"><div class="page-heading-row">
+<div>
+<h1>Mathematics Marks Entry</h1>
+<p class="page-subtitle">Select exam, class and section, then choose a student to enter marks.</p>
+</div>
+<a class="btn btn-light" href="marks-import.html">⇧ Import Marks</a>
+</div><div class="marks-filter-row">
+<select id="examFilter"><option>Mid Term</option><option>Unit Test 1</option><option>Final Exam</option></select>
+<select id="classFilter"><option>Class 3</option><option>Class 4</option><option>Class 5</option></select>
+<select id="sectionFilter"><option>Section A</option><option>Section B</option></select>
+<input id="studentSearch" placeholder="Search by name or admission no." type="search"/>
+</div><div class="marks-student-card">
+<table class="marks-student-table">
+<thead><tr><th>ROLL</th><th>STUDENT</th><th>ADMISSION NO.</th><th>CLASS</th><th>FATHER'S NAME</th><th class="action-col">ACTION</th></tr></thead>
+<tbody id="studentRows">
+<tr data-admission="2024/0312" data-student="Arjun Rawat"><td>1</td><td><strong>Arjun Rawat</strong></td><td>2024/0312</td><td>III-A</td><td>Mahesh Rawat</td><td class="action-col"><button class="enter-marks-link" data-admission="2024/0312" data-name="Arjun Rawat" data-roll="1">Enter marks</button></td></tr>
+<tr data-admission="2024/0348" data-student="Kavya Joshi"><td>2</td><td><strong>Kavya Joshi</strong></td><td>2024/0348</td><td>III-A</td><td>Deepak Joshi</td><td class="action-col"><button class="enter-marks-link" data-admission="2024/0348" data-name="Kavya Joshi" data-roll="2">Enter marks</button></td></tr>
+<tr data-admission="2024/0361" data-student="Riya Negi"><td>3</td><td><strong>Riya Negi</strong></td><td>2024/0361</td><td>III-A</td><td>Manoj Negi</td><td class="action-col"><button class="enter-marks-link" data-admission="2024/0361" data-name="Riya Negi" data-roll="3">Enter marks</button></td></tr>
+<tr data-admission="2024/0394" data-student="Aarav Bisht"><td>4</td><td><strong>Aarav Bisht</strong></td><td>2024/0394</td><td>III-A</td><td>Suresh Bisht</td><td class="action-col"><button class="enter-marks-link" data-admission="2024/0394" data-name="Aarav Bisht" data-roll="4">Enter marks</button></td></tr>
+<tr data-admission="2024/0410" data-student="Meera Panwar"><td>5</td><td><strong>Meera Panwar</strong></td><td>2024/0410</td><td>III-A</td><td>Rajesh Panwar</td><td class="action-col"><button class="enter-marks-link" data-admission="2024/0410" data-name="Meera Panwar" data-roll="5">Enter marks</button></td></tr>
+<tr data-admission="2024/0437" data-student="Dev Semwal"><td>6</td><td><strong>Dev Semwal</strong></td><td>2024/0437</td><td>III-A</td><td>Naveen Semwal</td><td class="action-col"><button class="enter-marks-link" data-admission="2024/0437" data-name="Dev Semwal" data-roll="6">Enter marks</button></td></tr>
+</tbody>
+</table>
+</div></div>
+<div class="student-marks-detail-view" hidden="" id="studentMarksDetailView">
+<div class="marks-detail-heading">
+<span class="marks-step">STEP 3 · ENTER MARKS</span>
+<h1>Marks Entry</h1>
+<p>Type a mark and the percentage &amp; grade update instantly.</p>
+</div>
+<div class="marks-detail-filters">
+<select id="detailClass"><option>Class III-A</option></select>
+<select id="detailExam"><option>Mid Term</option></select>
+<select id="detailStudent"></select>
+</div>
+<div class="marks-detail-card">
+<table class="marks-detail-table">
+<thead>
+<tr>
+<th>Subject</th>
+<th>Max<br/>marks</th>
+<th>Marks<br/>obtained</th>
+<th>%</th>
+<th>Grade</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Mathematics</td><td class="max-mark">100</td><td><input class="subject-mark-input" max="100" min="0" type="number" value=""/></td><td class="subject-percent">—</td><td class="subject-grade">—</td></tr>
+</tbody>
+<tfoot>
+<tr><th>Total</th><th id="detailMaxTotal">100</th><th id="detailObtainedTotal">0</th><th id="detailPercentage">0%</th><th id="detailGrade">—</th></tr>
+</tfoot>
+</table>
+</div>
+<div class="marks-detail-actions">
+<button class="btn btn-light" id="backToStudentList">← Back to students</button>
+<button class="btn btn-primary" id="saveDetailMarks">Save marks</button>
+<button class="btn btn-light" id="finalizeDetailMarks">Finalize marks</button>
+</div>
+<div class="marks-feedback" id="detailMarksFeedback"></div>
+</div>
+</div>
+</main></div><script src="app.js"></script><script src="prototype.js"></script><script>
+document.addEventListener('DOMContentLoaded', function () {
+  const listView = document.getElementById('marksListView');
+  const detailView = document.getElementById('studentMarksDetailView');
+  const studentSelect = document.getElementById('detailStudent');
+  const markInput = document.querySelector('.subject-mark-input');
+  const percentCell = document.querySelector('.subject-percent');
+  const gradeCell = document.querySelector('.subject-grade');
+  const obtainedTotal = document.getElementById('detailObtainedTotal');
+  const percentageTotal = document.getElementById('detailPercentage');
+  const gradeTotal = document.getElementById('detailGrade');
+  const feedback = document.getElementById('detailMarksFeedback');
+
+  const students = Array.from(document.querySelectorAll('#studentRows tr')).map(row => {
+    const btn = row.querySelector('.enter-marks-link');
+    return {
+      name: row.dataset.student,
+      admission: row.dataset.admission,
+      roll: btn.dataset.roll,
+      button: btn
+    };
+  });
+
+  function gradeFor(value) {
+    if (value >= 91) return 'A1';
+    if (value >= 81) return 'A2';
+    if (value >= 71) return 'B1';
+    if (value >= 61) return 'B2';
+    if (value >= 51) return 'C1';
+    if (value >= 41) return 'C2';
+    if (value >= 33) return 'D';
+    return 'E';
+  }
+
+  function recalculate() {
+    if (markInput.value === '') {
+      percentCell.textContent = '—';
+      gradeCell.textContent = '—';
+      obtainedTotal.textContent = '0';
+      percentageTotal.textContent = '0%';
+      gradeTotal.textContent = '—';
+      return;
+    }
+    const value = Number(markInput.value);
+    if (value < 0 || value > 100) return;
+    const grade = gradeFor(value);
+    percentCell.textContent = value + '%';
+    gradeCell.textContent = grade;
+    obtainedTotal.textContent = value;
+    percentageTotal.textContent = value + '%';
+    gradeTotal.textContent = grade;
+  }
+
+  function loadStudent(student) {
+    studentSelect.innerHTML = '';
+    students.forEach(s => {
+      const option = document.createElement('option');
+      option.value = s.admission;
+      option.textContent = s.name + ' (Roll ' + s.roll + ')';
+      if (s.admission === student.admission) option.selected = true;
+      studentSelect.appendChild(option);
+    });
+    markInput.value = student.button.dataset.mark || '';
+    feedback.textContent = '';
+    recalculate();
+  }
+
+  function showDetail(student) {
+    loadStudent(student);
+    listView.hidden = true;
+    detailView.hidden = false;
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  function activeStudent() {
+    return students.find(s => s.admission === studentSelect.value);
+  }
+
+  document.querySelectorAll('.enter-marks-link').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const student = students.find(s => s.admission === this.dataset.admission);
+      showDetail(student);
+    });
+  });
+
+  studentSelect.addEventListener('change', function () {
+    const student = activeStudent();
+    if (student) loadStudent(student);
+  });
+
+  markInput.addEventListener('input', function () {
+    if (this.value !== '' && (Number(this.value) < 0 || Number(this.value) > 100)) {
+      feedback.textContent = 'Marks must be between 0 and 100.';
+    } else {
+      feedback.textContent = '';
+      recalculate();
+    }
+  });
+
+  document.getElementById('backToStudentList').addEventListener('click', function () {
+    detailView.hidden = true;
+    listView.hidden = false;
+  });
+
+  function save(finalized) {
+    const student = activeStudent();
+    if (!student) return;
+    if (markInput.value === '' || Number(markInput.value) < 0 || Number(markInput.value) > 100) {
+      feedback.textContent = 'Enter valid marks between 0 and 100.';
+      return;
+    }
+    student.button.dataset.mark = markInput.value;
+    student.button.textContent = finalized ? 'Edit marks' : 'Continue entry';
+    student.button.classList.add('saved-mark');
+    feedback.textContent = finalized
+      ? 'Mathematics marks finalized for ' + student.name + '.'
+      : 'Mathematics marks saved for ' + student.name + '.';
+  }
+
+  document.getElementById('saveDetailMarks').addEventListener('click', () => save(false));
+  document.getElementById('finalizeDetailMarks').addEventListener('click', () => save(true));
+
+  document.getElementById('studentSearch').addEventListener('input', function () {
+    const q = this.value.toLowerCase().trim();
+    document.querySelectorAll('#studentRows tr').forEach(row => {
+      row.style.display = (row.dataset.student + ' ' + row.dataset.admission).toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+});
+</script></body></html>

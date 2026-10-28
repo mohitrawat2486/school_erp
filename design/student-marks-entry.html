@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Student Marks Entry</title><link href="style.css" rel="stylesheet"/></head>
+<body><div class="app"><aside class="sidebar"><div class="brand-wrap"><img alt="School logo" class="brand-logo" src="school-logo.png"/><div class="brand-copy"><div class="brand">School Results</div><div class="sub">St. Anthony's Public School<br/>New Tehri</div></div></div><nav class="nav"><a class="" href="admin-dashboard.html">Dashboard</a><a class="active" href="students.html">Students</a><a class="" href="classes.html">Classes &amp; Sections</a><a class="" href="teachers.html">Teachers &amp; RBAC</a><a class="" href="subjects.html">Subjects</a><a class="" href="exams.html">Exam Setup</a><a class="" href="marks.html">Marks Entry</a><a class="" href="attendance.html">Attendance</a><a class="" href="co-scholastic-setup.html">Co-Scholastic Setup</a><a class="" href="remarks.html">Remarks</a><a class="" href="report-card.html">Report Cards</a><a class="" href="report-card-templates.html">Report Card Formats</a><a class="" href="tabulation.html">Tabulation Sheet</a><a class="" href="reports.html">Reports</a></nav></aside>
+<main class="main"><header class="topbar"><div><b>Academic Session: 2026-2027</b></div><div>Admin &nbsp; <a href="login.html" style="color:#b02a1c">Logout</a></div></header><div class="content">
+<div class="marks-detail-heading"><span class="marks-step">STEP 3 · ENTER MARKS</span><h1>Marks Entry</h1><p>Type a mark and the percentage &amp; grade update instantly.</p></div>
+<div class="marks-detail-filters"><select id="classSelect"><option>Class 1-A</option></select><select><option>Mid Term</option><option>Half-Yearly</option><option>Annual</option></select><select id="studentSelect"><option value="rahul">Rahul Sharma (Roll 1)</option><option value="ananya">Ananya Singh (Roll 2)</option></select></div>
+<div class="marks-detail-card"><table class="marks-detail-table"><thead><tr><th>Subject</th><th>Max marks</th><th>Marks obtained</th><th>%</th><th>Grade</th></tr></thead>
+<tbody id="marksRows"></tbody>
+<tfoot><tr><th>Total</th><th id="totalMax">600</th><th id="totalMarks">501</th><th id="totalPercent">84%</th><th id="totalGrade">A2</th></tr></tfoot></table></div>
+<div class="marks-detail-actions"><button class="btn btn-primary" onclick="alert('Prototype: marks saved for the selected student.')">Save marks</button><a class="btn btn-light" href="report-card.html">Preview report card →</a><a class="btn btn-light" href="students.html">← Back to Students</a></div>
+</div></main></div>
+<script>
+const data={
+ rahul:{name:'Rahul Sharma',marks:[['English',100,82],['Hindi',100,68],['Mathematics',100,91],['Science',100,89],['Social Science',100,79],['Computer',100,92]]},
+ ananya:{name:'Ananya Singh',marks:[['English',100,91],['Hindi',100,89],['Mathematics',100,91],['Science',100,94],['Social Science',100,86],['Computer',100,90]]}
+};
+function grade(p){return p>=91?'A1':p>=81?'A2':p>=71?'B1':p>=61?'B2':p>=51?'C1':p>=41?'C2':'D'}
+function render(){
+ const key=document.getElementById('studentSelect').value, rows=data[key].marks;
+ document.getElementById('marksRows').innerHTML=rows.map((r,i)=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td><input type="number" min="0" max="${r[1]}" value="${r[2]}" data-i="${i}"/></td><td class="pct">${Math.round(r[2]/r[1]*100)}%</td><td class="gr">${grade(r[2]/r[1]*100)}</td></tr>`).join('');
+ document.querySelectorAll('#marksRows input').forEach(inp=>inp.addEventListener('input',update));
+ update();
+}
+function update(){
+ const key=document.getElementById('studentSelect').value, inputs=[...document.querySelectorAll('#marksRows input')];
+ let total=0,max=0;
+ inputs.forEach((inp,i)=>{let v=Math.max(0,Math.min(Number(inp.max),Number(inp.value)||0));data[key].marks[i][2]=v;let m=data[key].marks[i][1],p=Math.round(v/m*100);inp.closest('tr').querySelector('.pct').textContent=p+'%';inp.closest('tr').querySelector('.gr').textContent=grade(p);total+=v;max+=m});
+ let p=Math.round(total/max*100);document.getElementById('totalMax').textContent=max;document.getElementById('totalMarks').textContent=total;document.getElementById('totalPercent').textContent=p+'%';document.getElementById('totalGrade').textContent=grade(p);
+}
+const requested=new URLSearchParams(location.search).get('student');if(data[requested])document.getElementById('studentSelect').value=requested;
+document.getElementById('studentSelect').addEventListener('change',render);render();
+</script><script src="app.js"></script><script src="prototype.js"></script></body></html>

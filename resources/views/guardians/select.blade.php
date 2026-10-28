@@ -1,0 +1,20 @@
+<x-app-layout title="Manage guardian contacts" :full-width="true">
+<a href="{{ route('students.show',$student) }}" class="text-sm font-semibold text-[#8b2f24]">← {{ $student->fullName() }}</a>
+<div class="list-page-header mt-4 mb-6 flex flex-wrap items-center justify-between gap-4"><div><h1 class="font-bold">Manage guardian contacts</h1><p class="mt-2 text-slate-500">{{ $student->fullName() }} · {{ $student->admission_number }}</p></div><a href="{{ route('guardians.create') }}" class="button-primary rounded-lg bg-[#8b2f24] px-5 py-3 text-white"><x-icon name="plus" />Add guardian</a></div><x-admin-feedback />
+<p class="mb-6 text-sm text-slate-500">Search existing contacts before adding a guardian. One guardian can be shared by siblings. Setting a primary contact replaces the previous primary contact for this student.</p>
+<form method="GET" class="list-toolbar mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-5"><div class="flex-1"><label for="q" class="mb-2 block text-sm font-semibold">Search guardians</label><input id="q" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="Name, phone or email" class="w-full rounded-lg border border-slate-300 p-3"></div><button class="button-primary rounded-lg bg-[#8b2f24] px-5 py-3 text-white"><x-icon name="search" />Search</button><a href="{{ route('students.guardians.index',$student) }}" class="rounded-lg border border-slate-300 px-5 py-3">Reset</a></form>
+<x-data-table :records="$guardians" title="Available guardians" icon="users" :sticky-actions="false"><table class="w-full text-left"><thead><tr><th>Guardian</th><th>Status</th><th>Student contact settings</th></tr></thead><tbody>
+@forelse($guardians as $guardian)
+@php($link=$guardian->studentLinks->first())
+<tr><td><a href="{{ route('guardians.show',$guardian) }}" class="font-semibold text-[#8b2f24] underline">{{ $guardian->fullName() }}</a><p class="mt-1">{{ $guardian->phone }}</p></td><td><x-status-badge :value="$guardian->status->value" />@if($link)<p class="mt-2">{{ $link->status->value === 'ACTIVE' ? 'Linked' : 'Previously linked' }}</p>@endif</td><td>
+@if($guardian->status->value === 'ACTIVE')
+<form method="POST" action="{{ route('students.guardians.update',[$student,$guardian]) }}" class="flex min-w-80 flex-wrap items-center gap-3">@csrf @method('PUT')
+<label class="text-sm">Relationship<select name="relationship" aria-label="Relationship for {{ $guardian->fullName() }}" class="ml-2 rounded-lg border border-slate-300 bg-white p-2">@foreach(\App\Enums\GuardianRelationship::cases() as $relationship)<option value="{{ $relationship->value }}" @selected(($link?->relationship->value ?? 'GUARDIAN') === $relationship->value)>{{ ucfirst(strtolower($relationship->value)) }}</option>@endforeach</select></label>
+<input type="hidden" name="is_primary" value="0"><label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_primary" value="1" @checked($link?->is_primary)>Primary</label>
+<input type="hidden" name="is_emergency_contact" value="0"><label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_emergency_contact" value="1" @checked($link?->is_emergency_contact)>Emergency</label>
+<button class="rounded-lg bg-[#8b2f24] px-4 py-2 text-sm font-semibold text-white">{{ $link?->status->value === 'ACTIVE' ? 'Save contact' : 'Link guardian' }}</button></form>
+@else<p class="text-sm text-slate-500">Activate this guardian before linking or editing contact settings.</p>@endif
+@if($link?->status->value === 'ACTIVE')<details class="mt-3"><summary class="cursor-pointer text-sm text-[#8b2f24]">Unlink guardian</summary><form method="POST" action="{{ route('students.guardians.unlink',[$student,$guardian]) }}">@csrf<p class="my-2 text-sm text-slate-500">Retain this relationship as history.</p><button class="rounded-lg border border-slate-300 px-4 py-2 text-sm">Confirm unlink</button></form></details>@endif
+</td></tr>
+@empty<tr><td colspan="3">No guardians match your search.</td></tr>@endforelse
+</tbody></table></x-data-table></x-app-layout>

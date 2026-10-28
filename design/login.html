@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login - School Results</title><link rel="stylesheet" href="style.css"></head>
+<body><div class="login-page"><section class="login-brand"><img class="login-school-logo" src="school-logo.png" alt="St. Anthony School logo"><h1>School Results</h1><h2>St. Anthony’s Public School, New Tehri</h2><h3>Report Card Management System</h3><p style="color:#bfdbfe;max-width:560px;line-height:1.7">A simple academic result workflow for school administrators, class teachers and subject teachers.</p></section>
+<section class="login-panel"><div class="login-card"><h1 style="margin-top:0">Sign in</h1><p class="muted">Choose a prototype user below. Password is <b>demo123</b>.</p>
+<div class="demo-grid"><div class="demo-user" onclick="fill('admin@school.test','admin')"><b>Admin</b><br><span class="muted">admin@school.test</span></div>
+<div class="demo-user" onclick="fill('class.teacher@school.test','class')"><b>Class Teacher — Class 1 A</b><br><span class="muted">class.teacher@school.test</span></div>
+<div class="demo-user" onclick="fill('subject.teacher@school.test','subject')"><b>Subject Teacher — Mathematics</b><br><span class="muted">subject.teacher@school.test</span></div></div>
+<label>Email</label><input id="email" class="input" style="width:100%;margin-bottom:14px"><label>Password</label><input id="password" type="password" class="input" value="demo123" style="width:100%;margin-bottom:18px">
+<button class="btn btn-primary" style="width:100%" onclick="login()">Sign In</button><div id="msg" class="muted" style="margin-top:12px"></div></div></section></div>
+<script>let role='';function fill(e,r){document.getElementById('email').value=e;document.getElementById('password').value='demo123';role=r}function login(){const e=document.getElementById('email').value,p=document.getElementById('password').value;if(p!=='demo123'){document.getElementById('msg').innerText='Use dummy password: demo123';return}if(e==='admin@school.test')location='admin-dashboard.html';else if(e==='class.teacher@school.test')location='class-teacher-dashboard.html';else if(e==='subject.teacher@school.test')location='subject-teacher-dashboard.html';else document.getElementById('msg').innerText='Select one of the prototype users above.'}</script><script src="app.js"></script><script src="prototype.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const cards=[...document.querySelectorAll('.login-user,.user-option,.demo-user')];
+ cards.forEach((c,i)=>c.addEventListener('click',()=>{const inputs=document.querySelectorAll('input'); if(inputs[0]) inputs[0].value=['admin@school.test','class.teacher@school.test','subject.teacher@school.test'][i]||''; if(inputs[1]) inputs[1].value='demo123';}));
+ const form=document.querySelector('form'); if(form) form.addEventListener('submit',e=>{e.preventDefault();let email=document.querySelector('input[type=email]')?.value||'';location.href=email.includes('class.teacher')?'class-teacher-dashboard.html':email.includes('subject.teacher')?'subject-teacher-dashboard.html':'admin-dashboard.html';});
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const emails=['admin@school.test','class.teacher@school.test','subject.teacher@school.test'];
+  const choices=[...document.querySelectorAll('.login-user,.user-option,.demo-user')];
+  choices.forEach((c,i)=>c.addEventListener('click',()=>{
+    const email=document.querySelector('input[type=email]');
+    const pass=document.querySelector('input[type=password]');
+    if(email) email.value=emails[i]||emails[0];
+    if(pass) pass.value='demo123';
+  }));
+  const form=document.querySelector('form');
+  if(form) form.addEventListener('submit',e=>{
+    e.preventDefault();
+    const email=(document.querySelector('input[type=email]')?.value||'').toLowerCase();
+    let role='admin',target='admin-dashboard.html';
+    if(email.includes('class.teacher')){role='class_teacher';target='class-teacher-dashboard.html'}
+    else if(email.includes('subject.teacher')){role='subject_teacher';target='subject-teacher-dashboard.html'}
+    sessionStorage.setItem('prototypeRole',role);
+    location.href=target;
+  },true);
+});
+</script></body></html>

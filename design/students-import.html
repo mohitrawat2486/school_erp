@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Import Students</title><link href="style.css" rel="stylesheet"/></head>
+<body><div class="app"><aside class="sidebar"><div class="brand-wrap"><img alt="School logo" class="brand-logo" src="school-logo.png"/><div class="brand-copy"><div class="brand">School Results</div><div class="sub">St. Anthony's Public School<br/>New Tehri</div></div></div><nav class="nav"><a class="" href="admin-dashboard.html">Dashboard</a><a class="active" href="students.html">Students</a><a class="" href="classes.html">Classes &amp; Sections</a><a class="" href="teachers.html">Teachers &amp; RBAC</a><a class="" href="subjects.html">Subjects</a><a class="" href="exams.html">Exam Setup</a><a class="" href="marks.html">Marks Entry</a><a class="" href="attendance.html">Attendance</a><a class="" href="co-scholastic-setup.html">Co-Scholastic Setup</a><a class="" href="remarks.html">Remarks</a><a class="" href="report-card.html">Report Cards</a><a class="" href="report-card-templates.html">Report Card Formats</a><a class="" href="tabulation.html">Tabulation Sheet</a><a class="" href="reports.html">Reports</a></nav></aside>
+<main class="main"><header class="topbar"><div><b>Academic Session: 2026-2027</b></div><div>Admin User ▾</div></header><div class="content">
+<div class="subscreen-back"><a href="students.html">← Back to Students</a></div><h1 class="title">Import Students</h1>
+<p class="muted">Bulk add students class-wise and section-wise from an Excel file.</p>
+<div class="role-note"><b>Admin only:</b> Import students for multiple classes in one workbook. The system validates admission numbers, class, section, session and duplicate rows before final import.</div>
+<div class="card">
+<h3>1. Download Excel Template</h3>
+<p class="muted">Use the expected column structure so validation and class mapping remain predictable.</p>
+<table><tr><th>admission_no</th><th>roll_no</th><th>full_name</th><th>father_name</th><th>mother_name</th><th>dob</th><th>class</th><th>section</th><th>academic_session</th></tr>
+<tr><td>SAPS-101</td><td>1</td><td>Riya Rawat</td><td>Ajay Rawat</td><td>Meena Rawat</td><td>2019-05-12</td><td>Class 1</td><td>A</td><td>2026-2027</td></tr>
+<tr><td>SAPS-205</td><td>5</td><td>Arjun Singh</td><td>Rakesh Singh</td><td>Sunita Singh</td><td>2018-08-19</td><td>Class 2</td><td>B</td><td>2026-2027</td></tr></table>
+<div style="margin-top:14px"><button class="btn btn-light">Download Excel Template</button></div>
+</div>
+<div class="card"><h3>2. Upload Workbook</h3>
+<div class="upload-zone"><b>Select .xlsx or .xls file</b><p class="muted">One workbook may contain students from different classes and sections.</p><input accept=".xlsx,.xls" id="studentExcel" type="file"/></div>
+<button class="btn btn-primary" id="validateImport">Validate File</button></div>
+<div class="card"><h3>3. Validation Preview</h3>
+<div class="review-summary"><div class="card"><span class="muted">Rows Found</span><div class="value">42</div></div><div class="card"><span class="muted">Valid</span><div class="value">39</div></div><div class="card"><span class="muted">Warnings</span><div class="value">2</div></div><div class="card"><span class="muted">Errors</span><div class="value">1</div></div></div>
+<table><tr><th>Row</th><th>Admission No.</th><th>Student</th><th>Class / Section</th><th>Status</th><th>Message</th></tr>
+<tr><td>2</td><td>SAPS-101</td><td>Riya Rawat</td><td>Class 1 / A</td><td><span class="badge green">Valid</span></td><td>Ready to import</td></tr>
+<tr><td>18</td><td>SAPS-205</td><td>Arjun Singh</td><td>Class 2 / B</td><td><span class="badge amber">Warning</span></td><td>Roll no. 5 already used; review required</td></tr>
+<tr><td>31</td><td>SAPS-001</td><td>Rahul Sharma</td><td>Class 1 / A</td><td><span class="badge red">Error</span></td><td>Duplicate admission number</td></tr></table>
+<div class="student-import-help"><b>Import rules:</b> admission number must be unique within the school; class and section must exist; academic session must exist; duplicate workbook rows are rejected; invalid rows are not silently imported.</div>
+<div style="text-align:right;margin-top:16px"><button class="btn btn-light">Export Error Rows</button> <button class="btn btn-primary">Import 39 Valid Students</button></div></div>
+<script>document.addEventListener('DOMContentLoaded',()=>{let b=document.getElementById('validateImport');if(b)b.onclick=()=>protoToast('Excel file validated: 39 valid, 2 warnings, 1 error');});</script>
+</div></main></div><script src="app.js"></script><script src="prototype.js"></script></body></html>

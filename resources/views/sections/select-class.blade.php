@@ -1,0 +1,10 @@
+<x-app-layout title="Choose Class" :full-width="true">
+<a href="{{ route('sections.index') }}" class="text-sm font-semibold text-[#8b2f24]">← Sections</a><h1 class="mt-4 text-3xl font-bold">Choose a class</h1><p class="mt-2 mb-6 text-slate-500">{{ $creating ? 'Choose an active class for the new section.' : 'Choose a class to filter its sections.' }}</p><x-admin-feedback />
+<form method="GET" action="{{ route($creating ? 'sections.create' : 'sections.choose-class') }}" class="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-5 list-toolbar"><div class="min-w-48 flex-1"><label for="q" class="mb-2 block text-sm font-semibold">Search classes</label><input id="q" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="Class name or code" class="w-full rounded-lg border border-slate-300 p-3"></div><button class="rounded-lg bg-[#8b2f24] px-5 py-3 font-semibold text-white button-primary"><x-icon name="search" /><span>Search</span></button><a href="{{ route($creating ? 'sections.create' : 'sections.choose-class') }}" class="rounded-lg border border-slate-300 px-5 py-3 font-semibold">Reset</a></form>
+<x-data-table :records="$classes" title="Available classes" icon="classes"><table class="w-full text-left text-sm"><thead class="bg-slate-50"><tr><th class="p-4">Class</th><th class="p-4">Code</th><th class="p-4">Status</th><th class="p-4">Action</th></tr></thead><tbody>
+@forelse($classes as $schoolClass)
+<tr class="border-t border-slate-200"><td class="p-4 font-semibold">{{ $schoolClass->name }}</td><td class="p-4">{{ $schoolClass->code }}</td><td class="p-4"><x-status-badge :value="$schoolClass->status->value" /></td><td class="p-4"><a href="{{ route($creating ? 'sections.create' : 'sections.index',['class_id'=>$schoolClass->id]) }}" class="font-semibold text-[#8b2f24] underline table-action"><span>Select class</span><x-icon name="chevron-right" /></a></td></tr>
+@empty
+<tr><td colspan="4" class="p-8 text-center text-slate-500">No classes match your search.</td></tr>
+@endforelse
+</tbody></table></x-data-table></x-app-layout>

@@ -1,0 +1,43 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Teachers & RBAC</title><link href="style.css" rel="stylesheet"/></head>
+<body><div class="app"><aside class="sidebar"><div class="brand-wrap"><img alt="School logo" class="brand-logo" src="school-logo.png"/><div class="brand-copy"><div class="brand">School Results</div><div class="sub">St. Anthony's Public School<br/>New Tehri</div></div></div><nav class="nav"><a href="admin-dashboard.html">Dashboard</a><a href="students.html">Students</a><a href="classes.html">Classes &amp; Sections</a><a class="active" href="teachers.html">Teachers &amp; RBAC</a><a href="subjects.html">Subjects</a><a href="exams.html">Exam Setup</a><a href="marks.html">Marks Entry</a><a href="attendance.html">Attendance</a><a href="co-scholastic-setup.html">Co-Scholastic Setup</a><a href="remarks.html">Remarks</a><a href="report-card.html">Report Cards</a><a href="report-card-templates.html">Report Card Formats</a><a href="tabulation.html">Tabulation Sheet</a><a href="reports.html">Reports</a></nav></aside>
+<main class="main"><header class="topbar"><div><b>Academic Session: 2026-2027</b></div><div><b>Admin</b> <a href="login.html" style="margin-left:14px;color:#b02a1c;font-weight:700">Logout</a></div></header><div class="content">
+<div class="page-head"><div><div class="eyebrow">ACCESS CONTROL</div><h1 class="title">Teachers &amp; RBAC</h1><p class="muted">Create teacher accounts, assign roles, classes and subjects, and control what each teacher can access.</p></div><button class="btn btn-primary" onclick="toggleTeacherForm()">+ Add Teacher</button></div>
+<div class="card rbac-note"><b>How assignment works:</b> A teacher gets a system role first. Class Teacher is assigned to a class + section. Subject Teacher is assigned one or more subjects for selected classes + sections. Admin retains full access.</div>
+<div class="card" id="teacherForm" style="display:none;margin-top:18px">
+<h3 class="section-title">Add Teacher &amp; Assign Access</h3>
+<div class="grid form-grid">
+<div><label>Teacher Name</label><input class="input" placeholder="Full name"/></div>
+<div><label>Email / Login ID</label><input class="input" placeholder="teacher@school.test"/></div>
+<div><label>Role</label><select class="select" id="teacherRole" onchange="roleFields()"><option>Class Teacher</option><option>Subject Teacher</option></select></div>
+<div><label>Status</label><select class="select"><option>Active</option><option>Inactive</option></select></div>
+</div>
+<div id="classTeacherFields" class="assignment-panel"><h4>Class Teacher Assignment</h4><div class="toolbar"><select class="select"><option>Class 1</option><option>Class 2</option><option>Class 6</option><option>Class 9</option><option>Class 11</option></select><select class="select"><option>Section A</option><option>Section B</option></select></div><p class="muted">This teacher can manage attendance, class marks review/corrections, co-scholastic grades, remarks and report cards for the assigned class.</p></div>
+<div id="subjectTeacherFields" class="assignment-panel" style="display:none"><h4>Subject Teacher Assignment</h4><div class="toolbar"><select class="select"><option>Mathematics</option><option>English</option><option>Science</option><option>Physics</option><option>Accountancy</option></select><select class="select"><option>Class 6</option><option>Class 9</option><option>Class 11</option></select><select class="select"><option>Section A</option><option>Section B</option></select><button class="btn btn-light" onclick="protoToast('Subject assignment row added')">+ Add Assignment</button></div><p class="muted">Multiple subject/class/section assignments can be attached to the same teacher account.</p></div>
+<div class="module-actions"><button class="btn btn-light" onclick="toggleTeacherForm()">Cancel</button><button class="btn btn-primary" onclick="protoToast('Teacher account and RBAC assignments saved')">Save Teacher &amp; Access</button></div>
+</div>
+<div class="card" style="margin-top:18px"><div class="table-head"><h3 class="section-title">Teacher Accounts</h3><div class="toolbar compact"><select class="select"><option>All Roles</option><option>Class Teacher</option><option>Subject Teacher</option></select><input class="input" placeholder="Search teacher"/></div></div>
+<table><thead><tr><th>Teacher</th><th>Role</th><th>Assigned Class / Subject Scope</th><th>Login</th><th>Status</th><th>Action</th></tr></thead><tbody>
+<tr><td><b>Megha Gusain</b></td><td><span class="badge blue">Class Teacher</span></td><td>Class 1 · Section A</td><td>class.teacher@school.test</td><td><span class="badge green">Active</span></td><td><button class="link-btn" onclick="openAccess('Megha Gusain','Class Teacher','Class 1 · Section A')">Edit Access</button></td></tr>
+<tr><td><b>Lucky Jaina</b></td><td><span class="badge amber">Subject Teacher</span></td><td>Mathematics · Class 1 A, Class 2 A, Class 3 A</td><td>subject.teacher@school.test</td><td><span class="badge green">Active</span></td><td><button class="link-btn" onclick="openAccess('Lucky Jaina','Subject Teacher','Mathematics · Class 1 A, Class 2 A, Class 3 A')">Edit Access</button></td></tr>
+<tr><td><b>Neha Rawat</b></td><td><span class="badge amber">Subject Teacher</span></td><td>EVS · Class 1 A, Class 1 B</td><td>neha@school.test</td><td><span class="badge green">Active</span></td><td><button class="link-btn" onclick="openAccess('Neha Rawat','Subject Teacher','EVS · Class 1 A, Class 1 B')">Edit Access</button></td></tr>
+</tbody></table></div>
+<div class="card permission-matrix"><h3 class="section-title">Role Permission Matrix</h3><table><thead><tr><th>Module / Action</th><th>Admin</th><th>Class Teacher</th><th>Subject Teacher</th></tr></thead><tbody>
+<tr><td>School setup, classes, subjects, exams</td><td>✓ Full</td><td>—</td><td>—</td></tr>
+<tr><td>Teacher accounts &amp; assignments</td><td>✓ Full</td><td>—</td><td>—</td></tr>
+<tr><td>Student records</td><td>✓ Full</td><td>View own class</td><td>View assigned class list</td></tr>
+<tr><td>Marks entry</td><td>✓ Any marks</td><td>Review/edit own class + audit</td><td>Assigned subject only</td></tr>
+<tr><td>Attendance / Co-Scholastic / Remarks</td><td>✓ Full</td><td>Own class</td><td>—</td></tr>
+<tr><td>Report cards</td><td>✓ Generate/publish</td><td>Own class generate/preview</td><td>—</td></tr>
+<tr><td>Report card template mapping</td><td>✓ Full</td><td>—</td><td>—</td></tr>
+</tbody></table></div>
+<script>
+function toggleTeacherForm(){
+    const form = document.getElementById('teacherForm');
+    if (!form) return;
+    form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+}
+function roleFields(){const r=document.getElementById('teacherRole').value;document.getElementById('classTeacherFields').style.display=r==='Class Teacher'?'block':'none';document.getElementById('subjectTeacherFields').style.display=r==='Subject Teacher'?'block':'none'}
+function openAccess(n,r,s){document.getElementById('accessTitle').textContent='Edit Access — '+n;document.getElementById('accessRole').value=r;document.getElementById('accessScope').value=s;document.getElementById('accessModal').style.display='flex'}
+</script>
+<div class="modal-backdrop" id="accessModal" style="display:none"><div class="proto-modal"><h2 id="accessTitle">Edit Access</h2><label>Role<select class="select" id="accessRole"><option>Class Teacher</option><option>Subject Teacher</option></select></label><label>Current Assignment<input class="input wide-input" id="accessScope"/></label><p class="muted">Prototype: Admin can change role and assignment scope. Backend will store normalized class, section and subject assignments.</p><div class="modal-actions"><button class="btn btn-light" onclick="document.getElementById('accessModal').style.display='none'">Cancel</button><button class="btn btn-primary" onclick="document.getElementById('accessModal').style.display='none';protoToast('Teacher access updated')">Save Access</button></div></div></div>
+</div></main></div><script src="app.js"></script><script src="prototype.js"></script></body></html>

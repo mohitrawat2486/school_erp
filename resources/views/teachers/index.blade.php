@@ -1,0 +1,14 @@
+<x-app-layout title="Teachers" :full-width="true">
+<div class="list-page-header mb-6 flex flex-wrap items-center justify-between gap-4"><div><p class="text-sm font-semibold uppercase tracking-widest text-[#8b2f24]">Employees</p><h1 class="mt-2 text-3xl font-bold">Teachers</h1><p class="mt-2 text-slate-500">Manage teaching qualifications and profile status.</p></div>
+@can('create', \App\Models\TeacherProfile::class)
+<a href="{{ route('teachers.create') }}" class="rounded-lg bg-[#8b2f24] px-5 py-3 font-semibold text-white button-primary"><x-icon name="plus" /><span>Add teacher profile</span></a>
+@endcan
+</div><x-admin-feedback />
+<form method="GET" action="{{ route('teachers.index') }}" class="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-5 list-toolbar"><div class="min-w-48 flex-1"><label for="q" class="mb-2 block text-sm font-semibold">Search teachers</label><input id="q" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="Name, employee number or specialization" class="w-full rounded-lg border border-slate-300 p-3"></div><div><label for="status" class="mb-2 block text-sm font-semibold">Profile status</label><select id="status" name="status" class="rounded-lg border border-slate-300 bg-white p-3"><option value="">All statuses</option>@foreach(\App\Enums\TeacherProfileStatus::cases() as $status)<option value="{{ $status->value }}" @selected(($filters['status'] ?? '')===$status->value)>{{ ucfirst(strtolower($status->value)) }}</option>@endforeach</select></div><button class="rounded-lg bg-[#8b2f24] px-5 py-3 font-semibold text-white button-primary"><x-icon name="search" /><span>Filter</span></button><a href="{{ route('teachers.index') }}" class="rounded-lg border border-slate-300 px-5 py-3 font-semibold">Reset</a></form>
+<x-data-table :records="$profiles" title="Teacher directory" icon="teacher"><table class="w-full text-left text-sm"><thead class="bg-slate-50"><tr><th class="p-4">Employee number</th><th class="p-4">Teacher</th><th class="p-4">Specialization</th><th class="p-4">Experience (years)</th><th class="p-4">Profile status</th><th class="p-4">Action</th></tr></thead><tbody>
+@forelse($profiles as $profile)
+<tr class="border-t border-slate-200"><td class="p-4">{{ $profile->employee->employee_number }}</td><td class="p-4 font-semibold">{{ $profile->employee->fullName() }}</td><td class="p-4">{{ $profile->specialization ?: '—' }}</td><td class="p-4">{{ $profile->experience ?? '—' }}</td><td class="p-4"><x-status-badge :value="$profile->status->value" :muted="!$profile->isEligible()" /></td><td class="p-4"><a href="{{ route('teachers.show',$profile) }}" class="font-semibold text-[#8b2f24] underline table-action"><span>View</span><x-icon name="chevron-right" /></a></td></tr>
+@empty
+<tr><td colspan="6" class="p-8 text-center text-slate-500">No teacher profiles match your filters.</td></tr>
+@endforelse
+</tbody></table></x-data-table></x-app-layout>
