@@ -37,7 +37,7 @@ class EnrollmentSelection
                     $query->orderByDesc('start_date');
                 }
 
-                return ['items' => $query->orderBy('id')->paginate(20)->withQueryString(), 'step' => $step, 'field' => $field, 'selection' => $selection, 'q' => $q, 'context' => $context];
+                return ['items' => $query->orderBy('id')->paginateTable(20)->withQueryString(), 'step' => $step, 'field' => $field, 'selection' => $selection, 'q' => $q, 'context' => $context];
             }
             $record = $query->whereKey($data[$field])->firstOrFail();
             $selection[$field] = $record->id;

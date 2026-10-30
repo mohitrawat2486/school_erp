@@ -17,6 +17,8 @@ use App\Models\Subject;
 use App\Models\TeacherAssignment;
 use App\Models\TeacherProfile;
 use App\Services\TeacherAssignmentService;
+use App\Support\CurrentSchool;
+use App\Support\TeacherWorkspace;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,6 +32,11 @@ class TeacherAssignmentController extends Controller
     public function index(AssignmentIndexRequest $request): View
     {
         $filters = $request->validated();
+        $workspace = TeacherWorkspace::context($request);
+        $teacher = isset($filters['teacher_id']) ? TeacherProfile::with('employee')->findOrFail($filters['teacher_id']) : null;
+        $years = AcademicYear::orderByDesc('start_date')->orderByDesc('id')->get();
+        $year = isset($filters['academic_year_id']) ? $years->firstWhere('id', $filters['academic_year_id']) : null;
+        $list = TeacherWorkspace::listing($request);
         $query = TeacherAssignment::with(self::RELATIONS);
         foreach (['academic_year_id', 'teacher_id', 'class_id', 'status', 'assignment_type'] as $field) {
             if (isset($filters[$field])) {
@@ -43,7 +50,7 @@ class TeacherAssignmentController extends Controller
             });
         }
 
-        return view('assignments.index', ['assignments' => $query->orderByDesc('academic_year_id')->orderBy('class_id')->orderByDesc('id')->paginate(20)->withQueryString(), 'filters' => $filters]);
+        return view('assignments.index', ['assignments' => $query->orderByDesc('academic_year_id')->orderBy('class_id')->orderByDesc('id')->paginateTable(20)->withQueryString(), 'filters' => $filters, 'teacher' => $teacher, 'years' => $years, 'year' => $year, 'workspace' => $workspace, 'list' => $list, 'currentYear' => app(CurrentSchool::class)->academicYear()]);
     }
 
     private function picker(Builder $query, SelectAssignmentRequest $request, string $step, array $selection, bool $creating): View
@@ -68,16 +75,26 @@ class TeacherAssignmentController extends Controller
             $query->orderByDesc('start_date');
         }
 
-        return view('assignments.select', ['items' => $query->orderBy('id')->paginate(20)->withQueryString(), 'step' => $step, 'selection' => $selection, 'creating' => $creating, 'q' => $q]);
+        return view('assignments.select', ['items' => $query->orderBy('id')->paginateTable(20)->withQueryString(), 'step' => $step, 'selection' => $selection, 'creating' => $creating, 'q' => $q, 'selectedTeacher' => isset($selection['teacher_id']) ? TeacherProfile::with('employee')->findOrFail($selection['teacher_id']) : null]);
     }
 
     private function selection(SelectAssignmentRequest $request, bool $creating): View|RedirectResponse
     {
         $data = $request->validated();
+        $workspace = TeacherWorkspace::context($request);
+        $teacher = isset($data['teacher_id']) ? ($creating ? TeacherProfile::eligible() : TeacherProfile::query())->with('employee')->findOrFail($data['teacher_id']) : null;
         if ($creating && ! isset($data['assignment_type'])) {
-            return view('assignments.types');
+            $selection = array_intersect_key($data, array_flip(['academic_year_id', 'teacher_id', 'class_id', 'section_id', 'scope', 'subject_id'])) + $workspace;
+            if ($teacher) {
+                $selection['teacher_id'] = $teacher->id;
+            }
+
+            return view('assignments.types', ['selection' => $selection, 'teacher' => $teacher]);
         }
-        $selection = $creating ? ['assignment_type' => $data['assignment_type']] : [];
+        $selection = ($creating ? ['assignment_type' => $data['assignment_type']] : []) + $workspace;
+        if ($teacher) {
+            $selection['teacher_id'] = $teacher->id;
+        }
         $years = AcademicYear::query();
         if ($creating) {
             $years->whereIn('status', [AcademicYearStatus::Draft->value, AcademicYearStatus::Active->value]);
@@ -87,10 +104,17 @@ class TeacherAssignmentController extends Controller
         }
         $year = $years->whereKey($data['academic_year_id'])->firstOrFail();
         $selection['academic_year_id'] = $year->id;
-        $teacher = null;
         if ($creating) {
             $teachers = TeacherProfile::eligible()->with('employee');
             if (! isset($data['teacher_id'])) {
+                // Keep class setup context while the operator chooses a teacher.
+                if (isset($data['class_id'])) {
+                    $selection['class_id'] = SchoolClass::active()->whereKey($data['class_id'])->firstOrFail()->id;
+                    if (isset($data['scope'])) {
+                        $selection['scope'] = $data['scope'];
+                    }
+                }
+
                 return $this->picker($teachers, $request, 'teacher', $selection, true);
             }
             $teacher = $teachers->whereKey($data['teacher_id'])->firstOrFail();
@@ -146,28 +170,30 @@ class TeacherAssignmentController extends Controller
     {
         $assignment = $service->create($request->user(), $request->validated());
 
-        return redirect()->route('assignments.show', $assignment)->with('status', 'Teacher assignment created.');
+        return redirect()->route('assignments.show', ['teacher_assignment' => $assignment->id, ...TeacherWorkspace::context($request)])->with('status', 'Teacher assignment created.');
     }
 
-    public function show(TeacherAssignment $teacher_assignment): View
+    public function show(Request $request, TeacherAssignment $teacher_assignment): View
     {
         Gate::authorize('view', $teacher_assignment);
         $teacher_assignment->load(self::RELATIONS);
 
-        return view('assignments.show', ['assignment' => $teacher_assignment, 'effective' => TeacherAssignment::effective()->whereKey($teacher_assignment->id)->exists()]);
+        return view('assignments.show', ['assignment' => $teacher_assignment, 'effective' => TeacherAssignment::effective()->whereKey($teacher_assignment->id)->exists(), 'workspace' => TeacherWorkspace::context($request)]);
     }
 
     public function activate(Request $request, TeacherAssignment $teacher_assignment, TeacherAssignmentService $service): RedirectResponse
     {
+        $workspace = TeacherWorkspace::context($request);
         $service->setStatus($request->user(), $teacher_assignment, TeacherAssignmentStatus::Active);
 
-        return redirect()->route('assignments.show', $teacher_assignment)->with('status', 'Assignment activated.');
+        return redirect()->route('assignments.show', ['teacher_assignment' => $teacher_assignment->id, ...$workspace])->with('status', 'Assignment activated.');
     }
 
     public function deactivate(Request $request, TeacherAssignment $teacher_assignment, TeacherAssignmentService $service): RedirectResponse
     {
+        $workspace = TeacherWorkspace::context($request);
         $service->setStatus($request->user(), $teacher_assignment, TeacherAssignmentStatus::Inactive);
 
-        return redirect()->route('assignments.show', $teacher_assignment)->with('status', 'Assignment deactivated.');
+        return redirect()->route('assignments.show', ['teacher_assignment' => $teacher_assignment->id, ...$workspace])->with('status', 'Assignment deactivated.');
     }
 }

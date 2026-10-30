@@ -24,6 +24,6 @@ class EnrollmentDirectory
             });
         }
 
-        return $query->orderByDesc('academic_year_id')->orderBy('class_id')->orderBy('section_id')->orderBy('roll_number')->orderBy('id')->paginate(20)->withQueryString();
+        return $query->orderByDesc('academic_year_id')->orderBy('class_id')->orderBy('section_id')->orderBy('roll_number')->orderBy('id')->paginateTable(20)->withQueryString();
     }
 }

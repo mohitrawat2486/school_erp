@@ -38,7 +38,7 @@ class GuardianController extends Controller
     {
         Gate::authorize('view', $guardian);
 
-        return view('guardians.show', ['guardian' => $guardian, 'links' => $guardian->studentLinks()->with('student')->orderBy('id')->paginate(20)]);
+        return view('guardians.show', ['guardian' => $guardian, 'links' => $guardian->studentLinks()->with('student')->orderBy('id')->paginateTable(20)]);
     }
 
     public function edit(Guardian $guardian): View

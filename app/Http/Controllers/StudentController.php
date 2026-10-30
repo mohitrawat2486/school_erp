@@ -31,7 +31,7 @@ class StudentController extends Controller
             $query->where('status', $status);
         }
 
-        return view('students.index', ['students' => $query->orderBy('first_name')->orderBy('last_name')->orderBy('id')->paginate(20)->withQueryString(), 'filters' => $filters]);
+        return view('students.index', ['students' => $query->orderBy('first_name')->orderBy('last_name')->orderBy('id')->paginateTable(20)->withQueryString(), 'filters' => $filters]);
     }
 
     public function create(): View
@@ -52,7 +52,7 @@ class StudentController extends Controller
     {
         Gate::authorize('view', $student);
 
-        return view('students.show', ['student' => $student, 'enrollments' => $student->enrollments()->with(EnrollmentDirectory::RELATIONS)->orderByDesc('academic_year_id')->paginate(10, ['*'], 'enrollment_page')->withQueryString(), 'guardianLinks' => $student->guardianLinks()->with('guardian')->orderByDesc('is_primary')->orderBy('id')->paginate(20)]);
+        return view('students.show', ['student' => $student, 'enrollments' => $student->enrollments()->with(EnrollmentDirectory::RELATIONS)->orderByDesc('academic_year_id')->paginateTable(10, ['*'], 'enrollment_page')->withQueryString(), 'guardianLinks' => $student->guardianLinks()->with('guardian')->orderByDesc('is_primary')->orderBy('id')->paginateTable(20)]);
     }
 
     public function edit(Student $student): View

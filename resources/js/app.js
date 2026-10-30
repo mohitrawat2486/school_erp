@@ -1,3 +1,7 @@
+import './subject-class-setup';
+import './list-tables';
+import './class-teacher-setup';
+
 const root = document.querySelector('[data-sidebar-root]');
 
 if (root) {
@@ -123,14 +127,108 @@ document.querySelectorAll('[data-marks-row]').forEach((row) => {
 
 // Class result selections are scoped to the currently displayed page.
 document.querySelectorAll('[data-result-select-all]').forEach((toggle) => {
-    const boxes = [...toggle.closest('form').querySelectorAll('input[name="ids[]"]')];
+    const boxes = () => [...toggle.closest('form').querySelectorAll('input[name="ids[]"]')];
     const refresh = () => {
-        const selected = boxes.filter((box) => box.checked).length;
-        toggle.disabled = boxes.length === 0;
-        toggle.checked = boxes.length > 0 && selected === boxes.length;
-        toggle.indeterminate = selected > 0 && selected < boxes.length;
+        const selected = boxes().filter((box) => box.checked).length;
+        toggle.disabled = boxes().length === 0;
+        toggle.checked = boxes().length > 0 && selected === boxes().length;
+        toggle.indeterminate = selected > 0 && selected < boxes().length;
     };
-    toggle.addEventListener('change', () => boxes.forEach((box) => { box.checked = toggle.checked; }));
-    boxes.forEach((box) => box.addEventListener('change', refresh));
+    toggle.addEventListener('change', () => { boxes().forEach((box) => { box.checked = toggle.checked; }); refresh(); });
+    toggle.closest('form').addEventListener('change', refresh);
+    toggle.closest('form').addEventListener('list:draw', refresh);
     refresh();
+});
+
+// Guided class setup keeps optional sections and subjects on the same form.
+document.querySelectorAll('[data-class-setup]').forEach((form) => {
+    const name = form.querySelector('[name="name"]');
+    const code = form.querySelector('[data-class-code]');
+    const refreshCode = () => {
+        const value = name.value.trim();
+        let generated = '';
+        if (value && value === form.dataset.originalName) generated = form.dataset.originalCode;
+        else if (value && /^[a-zA-Z0-9 _-]+$/.test(value)) {
+            generated = value.toUpperCase().replace(/[ _]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            if (!generated || generated.length > 50) generated = 'Generated when you save';
+        } else if (value) generated = 'Generated when you save';
+        if (code instanceof HTMLInputElement) code.value = generated;
+        else code.textContent = generated || 'Enter a class name';
+        const announcement = form.querySelector('[data-class-code-announcement]');
+        if (announcement) announcement.textContent = generated ? `Class code: ${generated}` : '';
+    };
+    name.addEventListener('input', refreshCode); refreshCode();
+
+    const sectionArea = form.querySelector('[data-setup-sections]');
+    if (sectionArea) {
+        const skip = sectionArea.querySelector('[data-skip-sections]');
+        const custom = sectionArea.querySelector('[data-custom-sections]');
+        const choices = [...sectionArea.querySelectorAll('[data-section-choice]')];
+        const add = sectionArea.querySelector('[data-add-section]');
+        let sequence = 0;
+        const refresh = () => {
+            choices.forEach((choice) => {
+                choice.disabled = Boolean(skip?.checked) || choice.dataset.locked === 'true';
+                sectionArea.querySelector(`[data-section-capacity="${choice.dataset.sectionChoice}"]`).disabled = Boolean(skip?.checked) || !choice.checked;
+            });
+            custom.querySelectorAll('input').forEach((input) => input.disabled = Boolean(skip?.checked));
+            add.disabled = Boolean(skip?.checked) || custom.children.length + choices.filter((c) => c.checked).length >= 50;
+            const names = skip?.checked ? [] : [
+                ...choices.filter((c) => c.checked).map((c) => c.dataset.sectionChoice),
+                ...[...custom.querySelectorAll('[data-section-name]')].map((c) => c.value.trim()).filter(Boolean),
+            ];
+            sectionArea.querySelector('[data-section-summary]').textContent = names.length ? `Selected sections: ${names.join(', ')}` : 'No sections selected. You can add them later.';
+            form.dispatchEvent(new CustomEvent('class-setup:changed'));
+        };
+        sectionArea.addEventListener('input', refresh);
+        sectionArea.addEventListener('change', refresh);
+        sectionArea.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-remove-section]');
+            if (!button) return;
+            if (button.closest('[data-custom-section]').dataset.protected === 'true') return;
+            button.closest('[data-custom-section]').remove(); add.focus(); refresh();
+        });
+        add.hidden = false;
+        custom.querySelectorAll('[data-remove-section]').forEach((button) => button.hidden = false);
+        add.addEventListener('click', () => {
+            const fragment = sectionArea.querySelector('[data-section-template]').content.cloneNode(true);
+            let key;
+            do { key = `extra${sequence++}`; } while (form.querySelector(`[name="sections[${key}][name]"]`));
+            fragment.querySelectorAll('[data-section-field]').forEach((input) => input.name = `sections[${key}][${input.dataset.sectionField}]`);
+            const input = fragment.querySelector('[data-section-name]');
+            custom.append(fragment); input.focus(); refresh();
+        });
+        refresh();
+    }
+
+    const subjectArea = form.querySelector('[data-setup-subjects]');
+    const search = subjectArea?.querySelector('[data-subject-search]');
+    if (search) {
+        const boxes = [...subjectArea.querySelectorAll('input[type="checkbox"][name="subject_ids[]"]')];
+        const options = [...subjectArea.querySelectorAll('[data-subject-option]')];
+        const count = subjectArea.querySelector('[data-subject-count]');
+        const refresh = () => {
+            const selected = boxes.filter((box) => box.checked);
+            count.textContent = selected.length ? `${selected.length} subjects selected: ${selected.map((box) => box.closest('label').querySelector('span.font-semibold').textContent).join(', ')}` : 'No subjects selected. You can add them later.';
+            form.dispatchEvent(new CustomEvent('class-setup:changed'));
+        };
+        search.disabled = false;
+        search.addEventListener('input', () => {
+            const term = search.value.trim().toLocaleLowerCase();
+            options.forEach((option) => option.hidden = !option.dataset.searchText.toLocaleLowerCase().includes(term));
+            subjectArea.querySelector('[data-subject-empty]').hidden = options.some((option) => !option.hidden);
+        });
+        boxes.forEach((box) => box.addEventListener('change', refresh));
+        const copy = subjectArea.querySelector('[data-copy-subjects]');
+        if (copy) {
+            copy.disabled = false;
+            copy.addEventListener('change', () => {
+                if (!copy.value) return;
+                const ids = JSON.parse(copy.selectedOptions[0].dataset.subjects).map(String);
+                boxes.forEach((box) => box.checked = box.dataset.locked === 'true' || ids.includes(box.value));
+                search.value = ''; search.dispatchEvent(new Event('input')); refresh();
+            });
+        }
+        refresh();
+    }
 });

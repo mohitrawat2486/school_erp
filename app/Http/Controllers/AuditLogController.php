@@ -38,7 +38,7 @@ class AuditLogController extends Controller
         }
 
         return view('administration.audit-logs', [
-            'logs' => $query->orderByDesc('created_at')->orderByDesc('id')->paginate(25)->withQueryString(),
+            'logs' => $query->orderByDesc('created_at')->orderByDesc('id')->paginateTable(25)->withQueryString(),
             'filters' => $filters,
             'options' => $options,
         ]);

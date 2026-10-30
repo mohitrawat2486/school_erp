@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\AssignmentType;
 use App\Models\TeacherAssignment;
+use App\Support\TeacherWorkspace;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,6 +22,6 @@ class SelectAssignmentRequest extends FormRequest
             $rules[$field] = ['nullable', 'integer'];
         }
 
-return $rules;
+        return $rules + TeacherWorkspace::rules();
     }
 }

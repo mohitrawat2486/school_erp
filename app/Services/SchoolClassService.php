@@ -8,6 +8,7 @@ use App\Models\School;
 use App\Models\SchoolClass;
 use App\Models\Section;
 use App\Models\User;
+use App\Support\ClassCode;
 use App\Support\CurrentSchool;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,12 @@ class SchoolClassService
             $this->authorize($actor, $schoolClass);
             $record = $schoolClass ? SchoolClass::whereKey($schoolClass->id)->lockForUpdate()->firstOrFail() : new SchoolClass;
             $creating = ! $record->exists;
+            $data['name'] = trim($data['name']);
+            $data['code'] = $creating || $data['name'] !== $record->name ? ClassCode::fromName($data['name']) : $record->code;
+            if (! isset($data['sort_order'])) {
+                $data['sort_order'] = $creating ? (preg_match('/\b(\d+)\b/', $data['name'], $match) ? min((int) $match[1], 4294967295) : min((int) SchoolClass::max('sort_order') + 1, 4294967295)) : $record->sort_order;
+            }
+
             foreach (['name', 'code'] as $field) {
                 $duplicate = SchoolClass::where($field, $data[$field]);
                 if (! $creating) {

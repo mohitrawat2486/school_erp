@@ -22,6 +22,6 @@ class ExamSubjectDirectory
             $query->where(fn ($s) => $s->whereHas('subject', fn ($s) => $s->where(fn ($i) => $i->where('name', 'like', $p)->orWhere('code', 'like', $p)))->orWhereHas('exam', fn ($e) => $e->where('name', 'like', $p)));
         }
 
-        return $query->orderByDesc('exam_id')->orderBy('subject_id')->orderBy('id')->paginate(20)->withQueryString();
+        return $query->orderByDesc('exam_id')->orderBy('subject_id')->orderBy('id')->paginateTable(20)->withQueryString();
     }
 }

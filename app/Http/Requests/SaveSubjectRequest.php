@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\SubjectType;
 use App\Models\Subject;
 use App\Support\CurrentSchool;
+use App\Support\SubjectWorkspace;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,6 +25,6 @@ class SaveSubjectRequest extends FormRequest
             $unique->ignore($subject->id);
         }
 
-return ['name' => ['required', 'string', 'max:100'], 'code' => ['required', 'string', 'max:50', 'alpha_dash', $unique], 'type' => ['required', Rule::enum(SubjectType::class)], 'school_id' => ['prohibited'], 'id' => ['prohibited'], 'status' => ['prohibited']];
+        return ['name' => ['required', 'string', 'max:100'], 'code' => ['required', 'string', 'max:50', 'alpha_dash', $unique], 'type' => ['required', Rule::enum(SubjectType::class)], 'school_id' => ['prohibited'], 'id' => ['prohibited'], 'status' => ['prohibited']] + SubjectWorkspace::rules();
     }
 }

@@ -28,7 +28,7 @@ class MarksVerificationController extends Controller
             $query->where(fn ($s) => $s->whereHas('student', fn ($t) => $t->where('first_name', 'like', '%'.$q.'%')->orWhere('last_name', 'like', '%'.$q.'%')->orWhere('admission_number', 'like', '%'.$q.'%'))->orWhereHas('exam', fn ($t) => $t->where('name', 'like', '%'.$q.'%'))->orWhereHas('examSubject.subject', fn ($t) => $t->where('name', 'like', '%'.$q.'%')->orWhere('code', 'like', '%'.$q.'%')));
         }
 
-        return view('marks-review.index', ['marks' => $query->orderByDesc('id')->paginate(20)->withQueryString(), 'filters' => $filters]);
+        return view('marks-review.index', ['marks' => $query->orderByDesc('id')->paginateTable(20)->withQueryString(), 'filters' => $filters]);
     }
 
     public function show(StudentMark $student_mark)

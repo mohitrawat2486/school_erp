@@ -17,7 +17,7 @@ class AcademicYearController extends Controller
     {
         Gate::authorize('viewAny', AcademicYear::class);
 
-        return view('academics.years.index', ['years' => AcademicYear::orderByDesc('start_date')->orderByDesc('id')->paginate(20)]);
+        return view('academics.years.index', ['years' => AcademicYear::orderByDesc('start_date')->orderByDesc('id')->paginateTable(20)]);
     }
 
     public function create(): View

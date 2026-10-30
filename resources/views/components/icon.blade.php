@@ -1,6 +1,10 @@
 @props(['name'])
 @php
     $paths = [
+        'check' => '<path d="m5 12 4 4L19 6"/>',
+        'eye' => '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+        'pencil' => '<path d="m16 3 5 5M4 15l12-12a3.5 3.5 0 0 1 5 5L9 20l-6 1 1-6Z"/>',
+        'printer' => '<path d="M6 9V3h12v6M6 17H3v-8h18v8h-3M6 14h12v7H6zM17 11h.01"/>',
         'plus' => '<path d="M12 5v14M5 12h14"/>',
         'search' => '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/>',
         'chevron-left' => '<path d="m14 6-6 6 6 6"/>',

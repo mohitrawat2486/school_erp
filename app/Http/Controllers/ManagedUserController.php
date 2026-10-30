@@ -18,7 +18,7 @@ class ManagedUserController extends Controller
     {
         Gate::authorize('viewAny', User::class);
 
-        return view('administration.users.index', ['users' => User::where('school_id', app(CurrentSchool::class)->id())->with('roles')->orderBy('name')->orderBy('id')->paginate(20)]);
+        return view('administration.users.index', ['users' => User::where('school_id', app(CurrentSchool::class)->id())->with('roles')->orderBy('name')->orderBy('id')->paginateTable(20)]);
     }
 
     public function create(): View

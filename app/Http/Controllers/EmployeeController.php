@@ -33,7 +33,7 @@ class EmployeeController extends Controller
             $query->where('employee_type', $type);
         }
 
-        return view('employees.index', ['employees' => $query->orderBy('first_name')->orderBy('last_name')->orderBy('id')->paginate(20)->withQueryString(), 'filters' => $filters]);
+        return view('employees.index', ['employees' => $query->orderBy('first_name')->orderBy('last_name')->orderBy('id')->paginateTable(20)->withQueryString(), 'filters' => $filters]);
     }
 
     public function create(): View

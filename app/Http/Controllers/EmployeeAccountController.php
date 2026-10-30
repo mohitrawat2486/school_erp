@@ -25,7 +25,7 @@ class EmployeeAccountController extends Controller
             $query->where(fn ($s) => $s->where('employee_number', 'like', $p)->orWhereRaw("CONCAT_WS(' ', first_name, middle_name, last_name) LIKE ?", [$p]));
         }
 
-        return view('administration.users.employee', ['account' => $managed_user, 'currentEmployee' => $managed_user->employee, 'employees' => $query->orderBy('first_name')->orderBy('id')->paginate(20)->withQueryString(), 'q' => $request->validated('q')]);
+        return view('administration.users.employee', ['account' => $managed_user, 'currentEmployee' => $managed_user->employee, 'employees' => $query->orderBy('first_name')->orderBy('id')->paginateTable(20)->withQueryString(), 'q' => $request->validated('q')]);
     }
 
     public function update(EmployeeAccountRequest $request, User $managed_user, EmployeeAccountLinker $service): RedirectResponse

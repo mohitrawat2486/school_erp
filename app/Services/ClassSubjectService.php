@@ -14,6 +14,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Support\CurrentSchool;
 use App\Support\MarksConfiguration;
+use App\Support\SubjectClassState;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -89,6 +90,9 @@ class ClassSubjectService
             if ($record->status === $status) {
                 return;
             } $old = $record->only(ClassSubject::AUDIT_FIELDS);
+            if ($status === ClassSubjectStatus::Inactive && SubjectClassState::isUsed($record)) {
+                throw ValidationException::withMessages(['status' => 'This class uses the subject in teacher assignments or exams. Keep it active to preserve those links.']);
+            }
             $record->status = $status;
             $record->save();
             app(AuditLogger::class)->record($actor, $status === ClassSubjectStatus::Active ? 'CLASS_SUBJECT_ACTIVATED' : 'CLASS_SUBJECT_DEACTIVATED', 'class_subject', $record->id, $old, $record->only(ClassSubject::AUDIT_FIELDS), 'academics');

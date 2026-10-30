@@ -1,6 +1,6 @@
 <x-app-layout :title="$subject->exists ? 'Edit Subject' : 'Add Subject'">
-<a href="{{ route('subjects.index') }}" class="text-sm font-semibold text-[#8b2f24]">← Subjects</a><h1 class="mt-4 mb-6 text-3xl font-bold">{{ $subject->exists ? 'Edit Subject' : 'Add Subject' }}</h1><x-admin-feedback />
-<form method="POST" action="{{ $subject->exists ? route('subjects.update',$subject) : route('subjects.store') }}" class="max-w-3xl space-y-5 rounded-xl border border-slate-200 bg-white p-6">@csrf
+<a href="{{ route('subjects.index',$workspace['catalog']??[]) }}" class="text-sm font-semibold text-[#8b2f24]">← Subjects</a><h1 class="mt-4 mb-6 text-3xl font-bold">{{ $subject->exists ? 'Edit Subject' : 'Add Subject' }}</h1><x-admin-feedback />
+<form method="POST" action="{{ $subject->exists ? route('subjects.update',$subject) : route('subjects.store') }}" class="max-w-3xl space-y-5 rounded-xl border border-slate-200 bg-white p-6">@csrf<x-context-fields :values="$workspace" />
 @if($subject->exists)
 @method('PUT')
 @endif

@@ -28,7 +28,7 @@ class MarksEntryController extends Controller
             $query->where('name', 'like', '%'.$q.'%');
         }
 
-        return view('marks.select', ['year' => $year, 'records' => $query->orderByDesc('id')->paginate(20)->withQueryString(), 'q' => $filters['q'] ?? '']);
+        return view('marks.select', ['year' => $year, 'records' => $query->orderByDesc('id')->paginateTable(20)->withQueryString(), 'q' => $filters['q'] ?? '']);
     }
 
     public function index(Request $request, MarksAccess $access)
@@ -44,14 +44,14 @@ class MarksEntryController extends Controller
             $query->where(fn ($s) => $s->whereHas('subject', fn ($t) => $t->where('name', 'like', '%'.$q.'%')->orWhere('code', 'like', '%'.$q.'%'))->orWhereHas('exam', fn ($e) => $e->where('name', 'like', '%'.$q.'%')));
         }
 
-        return view('marks.index', ['subjects' => $query->orderByDesc('exam_id')->orderBy('subject_id')->paginate(20)->withQueryString(), 'filters' => $filters]);
+        return view('marks.index', ['subjects' => $query->orderByDesc('exam_id')->orderBy('subject_id')->paginateTable(20)->withQueryString(), 'filters' => $filters]);
     }
 
     public function show(Request $request, ExamSubject $exam_subject, MarksAccess $access, MarksEntryService $service)
     {
         $access->authorize($request->user(), $exam_subject);
         $filters = $request->validate(['section_id' => ['nullable', 'integer', 'min:1']]);
-        $sections = $access->sections($request->user(), $exam_subject)->orderBy('name')->paginate(20, ['*'], 'sections_page')->withQueryString();
+        $sections = $access->sections($request->user(), $exam_subject)->orderBy('name')->paginateTable(20, ['*'], 'sections_page')->withQueryString();
         $section = null;
         $roster = null;
         $marks = collect();

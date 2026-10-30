@@ -18,7 +18,7 @@
             <nav class="sidebar-nav" aria-label="Main navigation">
                 <x-sidebar-link :href="route('dashboard')" icon="dashboard" label="Dashboard" :active="request()->routeIs('dashboard')" />
 
-                @if(auth()->user()->can('academic_year.view') || auth()->user()->can('class.view') || auth()->user()->can('section.view') || auth()->user()->can('subject.view') || auth()->user()->can('teacher_assignment.view'))
+                @if(auth()->user()->can('academic_year.view') || auth()->user()->can('class.view') || auth()->user()->can('section.view') || auth()->user()->can('subject.view') || (auth()->user()->can('teacher_assignment.view') && !auth()->user()->can('teacher.view')))
                     <p class="sidebar-group-label">Academics</p>
                 @endif
                 @can('academic_year.view')
@@ -31,12 +31,11 @@
                     <x-sidebar-link :href="route('sections.index')" icon="sections" label="Sections" :active="request()->routeIs('sections.*')" />
                 @endcan
                 @can('subject.view')
-                    <x-sidebar-link :href="route('subjects.index')" icon="book" label="Subjects" :active="request()->routeIs('subjects.*')" />
-                    <x-sidebar-link :href="route('class-subjects.index')" icon="books" label="Class Subjects" :active="request()->routeIs('class-subjects.*')" />
+                    <x-sidebar-link :href="route('subjects.index')" icon="book" label="Subjects" :active="request()->routeIs('subjects.*','class-subjects.*')" />
                 @endcan
-                @can('teacher_assignment.view')
+                @if(auth()->user()->can('teacher_assignment.view') && !auth()->user()->can('teacher.view'))
                     <x-sidebar-link :href="route('assignments.index')" icon="assignment" label="Teacher Assignments" :active="request()->routeIs('assignments.*')" />
-                @endcan
+                @endif
 
                 @can('student.view')
                     <p class="sidebar-group-label">Students</p>
@@ -55,7 +54,7 @@
                     <x-sidebar-link :href="route('employees.index')" icon="employees" label="Employee List" :active="request()->routeIs('employees.*')" />
                 @endcan
                 @can('teacher.view')
-                    <x-sidebar-link :href="route('teachers.index')" icon="teacher" label="Teachers" :active="request()->routeIs('teachers.*')" />
+                    <x-sidebar-link :href="route('teachers.index')" icon="teacher" label="Teachers" :active="request()->routeIs('teachers.*', 'assignments.*')" />
                 @endcan
 
                 @if(auth()->user()->can('exam.view') || auth()->user()->can('marks.view'))

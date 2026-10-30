@@ -6,6 +6,7 @@ use App\Enums\AssignmentType;
 use App\Enums\TeacherAssignmentStatus;
 use App\Models\TeacherAssignment;
 use App\Support\CurrentSchool;
+use App\Support\TeacherWorkspace;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,6 +27,6 @@ class AssignmentIndexRequest extends FormRequest
             } $rules[$field] = ['nullable', 'integer', $exists];
         }
 
-return $rules;
+        return $rules + TeacherWorkspace::rules();
     }
 }

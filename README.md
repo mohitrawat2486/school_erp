@@ -62,7 +62,7 @@ All 26 numbered phases are implemented. Next: integrated acceptance and the plan
 ## Verified locally
 
 - Laravel framework 13.38.0, PHP 8.3.6, MySQL server 8.0.46.
-- 512 automated tests pass (3128 assertions), using school_erp_testing. Audit history also passes 30 responsive browser checks.
+- Latest full regression: 542 tests pass (3346 assertions), using school_erp_testing. Class creation/editing also passes 60 responsive browser checks.
 - Production Vite build, Pint, Blade compilation and migration status checks pass.
 - npm audit reports no vulnerabilities at installation.
 - Shared navigation and six representative screens were browser-checked at 320–1440px; print/PDF output remains unverified.
@@ -318,3 +318,29 @@ See [development/step-28.md](development/step-28.md) for coverage, files, verifi
 ## Class 1 sample records
 
 The local school includes **Class 1A and 1B**, ten sample students per section, ten teachers, ten subjects, linked guardians and published sample results. Open **Results → Class-wise Results** and choose the published Class 1 assessment, then **A/B** (historical published labels retain their original names). See [sample-data notes](development/sample-class-one.md) for the repeatable command, records and verification.
+
+## Create a class with sections, subjects and teachers
+
+Open **Academics → Classes → Add class**. Enter a name; the code and display order are generated automatically. Select sections (A–D or custom names), optionally set student limits, then choose subjects for the current academic year. You can copy subject choices from another class or add sections/subjects later. Optionally choose class and subject teachers through a searchable pop-up. One save creates the complete setup.
+
+**Edit class** includes the same sections, subjects and teacher inputs, prefilled with saved values. Teacher replacements preserve assignment history. In-use items stay selected to protect students, teachers and exams; unchecked unused sections are deleted, while unused subject mappings are retained as inactive. Class code remains automatic and read-only.
+
+Existing classes and published records are retained. See [class setup notes](development/class-setup.md) and [teacher setup notes](development/class-teachers.md) for behavior, permissions, tests and previews.
+
+## Searchable lists
+
+Teacher Assignments and the other record lists now use DataTables with search across all matching records, page-size controls and pagination without reloading the page. Existing filters and access permissions apply. Published-result selection and export filters follow the current table view. Editing forms keep their current save workflow.
+
+See [list table notes](development/list-tables.md) for coverage and implementation details.
+
+## Teachers workspace
+
+Open **Employees → Teachers** to manage profiles and assignments from one workspace. Each teacher has **View profile** and **Assignments** actions, plus an active assignment count for the current academic year. **All assignments** provides the school-wide view. Adding an assignment from a teacher preselects them; filters and back links preserve the chosen teacher and directory context. Existing assignment-only access and historical records are retained.
+
+List actions across the app now use consistent labelled icons. See [teacher workspace notes](development/teacher-workspace.md) for behavior, permissions and previews.
+
+## Subjects workspace
+
+Open **Academics → Subjects** to manage the subject list and class use together. **Classes → Manage classes** provides one searchable checklist for the selected subject and academic year. Changes save together; unused removals require confirmation, used links stay protected, and restored links retain their marks settings. **By class** provides an overview and class-specific **Marks settings** actions. Existing class creation and historical records remain supported.
+
+See [subject workspace notes](development/subject-workspace.md) for behavior, permissions and previews.

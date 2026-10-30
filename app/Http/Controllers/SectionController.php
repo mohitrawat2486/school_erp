@@ -32,7 +32,7 @@ class SectionController extends Controller
             $query->where('class_id', $selectedClass->id);
         }
 
-        return view('sections.index', ['sections' => $query->orderBy('class_id')->orderBy('name')->orderBy('id')->paginate(20)->withQueryString(), 'filters' => $filters, 'selectedClass' => $selectedClass]);
+        return view('sections.index', ['sections' => $query->orderBy('class_id')->orderBy('name')->orderBy('id')->paginateTable(20)->withQueryString(), 'filters' => $filters, 'selectedClass' => $selectedClass]);
     }
 
     private function classPicker(SelectSectionClassRequest $request, bool $creating): View
@@ -47,7 +47,7 @@ class SectionController extends Controller
             $query->where(fn ($search) => $search->where('name', 'like', $pattern)->orWhere('code', 'like', $pattern));
         }
 
-        return view('sections.select-class', ['classes' => $query->orderBy('sort_order')->orderBy('name')->orderBy('id')->paginate(20)->withQueryString(), 'filters' => $filters, 'creating' => $creating]);
+        return view('sections.select-class', ['classes' => $query->orderBy('sort_order')->orderBy('name')->orderBy('id')->paginateTable(20)->withQueryString(), 'filters' => $filters, 'creating' => $creating]);
     }
 
     public function chooseClass(SelectSectionClassRequest $request): View

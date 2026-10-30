@@ -50,4 +50,44 @@ class Section extends Model
     {
         return $this->hasMany(StudentEnrollment::class, 'section_id');
     }
+
+    public function teacherAssignments(): HasMany
+    {
+        return $this->hasMany(TeacherAssignment::class, 'section_id');
+    }
+
+    public function sourcePromotionBatches(): HasMany
+    {
+        return $this->hasMany(PromotionBatch::class, 'source_section_id');
+    }
+
+    public function targetPromotionBatches(): HasMany
+    {
+        return $this->hasMany(PromotionBatch::class, 'target_section_id');
+    }
+
+    public function publishedResults(): HasMany
+    {
+        return $this->hasMany(StudentResult::class, 'section_id');
+    }
+
+    public function scopeWithUsage(Builder $query): Builder
+    {
+        return $query->withExists(['enrollments', 'teacherAssignments', 'sourcePromotionBatches', 'targetPromotionBatches', 'publishedResults']);
+    }
+
+    public function isInUse(): bool
+    {
+        $flags = ['enrollments_exists', 'teacher_assignments_exists', 'source_promotion_batches_exists', 'target_promotion_batches_exists', 'published_results_exists'];
+        if (array_diff($flags, array_keys($this->getAttributes()))) {
+            return static::whereKey($this->id)->withUsage()->firstOrFail()->isInUse();
+        }
+        foreach ($flags as $flag) {
+            if ($this->$flag) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

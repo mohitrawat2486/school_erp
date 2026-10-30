@@ -21,6 +21,6 @@ class PromotionDirectory
             $query->where(fn ($s) => $s->where('action', 'like', $p)->orWhereHas('student', fn ($s) => $s->where(fn ($i) => $i->where('admission_number', 'like', $p)->orWhereRaw("CONCAT_WS(' ',first_name,middle_name,last_name) LIKE ?", [$p]))));
         }
 
-        return $query->orderByDesc('id')->paginate(20)->withQueryString();
+        return $query->orderByDesc('id')->paginateTable(20)->withQueryString();
     }
 }

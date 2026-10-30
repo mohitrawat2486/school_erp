@@ -41,7 +41,7 @@ class ExamController extends Controller
         Gate::authorize('view', $exam);
         $exam->load(ExamDirectory::RELATIONS);
 
-        return view('exams.show', ['exam' => $exam, 'subjects' => $exam->examSubjects()->with(ExamSubjectDirectory::RELATIONS)->orderBy('subject_id')->paginate(20, ['*'], 'subjects_page')->withQueryString()]);
+        return view('exams.show', ['exam' => $exam, 'subjects' => $exam->examSubjects()->with(ExamSubjectDirectory::RELATIONS)->orderBy('subject_id')->paginateTable(20, ['*'], 'subjects_page')->withQueryString()]);
     }
 
     public function edit(Exam $exam): View

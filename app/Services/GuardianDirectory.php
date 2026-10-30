@@ -20,6 +20,6 @@ class GuardianDirectory
             $query->with(['studentLinks' => fn ($q) => $q->where('student_id', $studentId)]);
         }
 
-        return $query->orderBy('first_name')->orderBy('last_name')->orderBy('id')->paginate(20)->withQueryString();
+        return $query->orderBy('first_name')->orderBy('last_name')->orderBy('id')->paginateTable(20)->withQueryString();
     }
 }

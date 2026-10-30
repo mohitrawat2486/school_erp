@@ -53,7 +53,7 @@ class PromotionSelection
                     $query->orderBy('sort_order');
                 }
 
-                return ['step' => $field, 'kind' => $kind, 'items' => $query->orderBy('id')->paginate(20)->withQueryString(), 'selection' => $selection, 'context' => $context, 'q' => $q];
+                return ['step' => $field, 'kind' => $kind, 'items' => $query->orderBy('id')->paginateTable(20)->withQueryString(), 'selection' => $selection, 'context' => $context, 'q' => $q];
             }
             $record = $query->whereKey($data[$field])->firstOrFail();
             $selection[$field] = $record->id;

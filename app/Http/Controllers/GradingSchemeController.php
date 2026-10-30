@@ -25,7 +25,7 @@ class GradingSchemeController extends Controller
             $q->where('status', $filters['status']);
         }
 
-        return view('grading.index', ['schemes' => $q->orderBy('name')->paginate(20)->withQueryString(), 'filters' => $filters]);
+        return view('grading.index', ['schemes' => $q->orderBy('name')->paginateTable(20)->withQueryString(), 'filters' => $filters]);
     }
 
     public function create()
@@ -48,7 +48,7 @@ class GradingSchemeController extends Controller
         $data = $request->validate(['percentage' => 'nullable|numeric|decimal:0,2|between:0,100']);
         $grade = isset($data['percentage']) ? $resolver->resolve($grading_scheme, $data['percentage']) : null;
 
-        return view('grading.show', ['scheme' => $grading_scheme, 'rules' => $grading_scheme->rules()->orderByDesc('min_percentage')->paginate(20)->withQueryString(), 'grade' => $grade, 'percentage' => $data['percentage'] ?? null]);
+        return view('grading.show', ['scheme' => $grading_scheme, 'rules' => $grading_scheme->rules()->orderByDesc('min_percentage')->paginateTable(20)->withQueryString(), 'grade' => $grade, 'percentage' => $data['percentage'] ?? null]);
     }
 
     public function edit(GradingScheme $grading_scheme)

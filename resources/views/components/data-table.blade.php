@@ -1,8 +1,9 @@
 @props(['records','title','icon'=>'sections','stickyActions'=>true])
-<section class="data-panel" aria-label="{{ $title }}">
+@php($tableMetadata = app(\App\Support\TablePagination::class)->metadata($records))
+<section {{ $attributes->class(['data-panel']) }} aria-label="{{ $title }}" @if($tableMetadata) data-list-table="{{ $tableMetadata['key'] }}" data-list-config='@json($tableMetadata)' @endif>
     <div class="data-panel-heading"><div class="data-panel-title"><span class="data-panel-icon"><x-icon :name="$icon" /></span><h2>{{ $title }}</h2><span class="record-count">{{ number_format($records->total()) }}</span></div><span class="data-panel-hint">{{ $records->total() === 1 ? '1 record' : number_format($records->total()).' records' }}</span></div>
     <div class="data-table-region overflow-x-auto {{ $stickyActions ? 'has-sticky-actions' : '' }}" role="region" aria-label="{{ $title }} table" tabindex="0">{{ $slot }}</div>
-    <div class="data-panel-footer">
+    <div class="data-panel-footer" data-table-fallback>
         <p class="result-summary">@if($records->total()) Showing <strong>{{ number_format($records->firstItem()) }}–{{ number_format($records->lastItem()) }}</strong> of <strong>{{ number_format($records->total()) }}</strong> records @else No records to display @endif</p>
         @if($records->hasPages())
             @php($firstPage = max(1, $records->currentPage() - 1))

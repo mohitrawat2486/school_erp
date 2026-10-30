@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\TeacherProfile;
+use App\Support\TeacherWorkspace;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SelectTeacherEmployeeRequest extends FormRequest
@@ -14,6 +15,6 @@ class SelectTeacherEmployeeRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['q' => ['nullable', 'string', 'max:100'], 'employee_id' => ['nullable', 'integer']];
+        return ['q' => ['nullable', 'string', 'max:100'], 'employee_id' => ['nullable', 'integer']] + TeacherWorkspace::rules();
     }
 }

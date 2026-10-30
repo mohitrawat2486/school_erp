@@ -28,7 +28,7 @@ class ResultApprovalController extends Controller
             $q->where('status', $filters['status']);
         }
 
-        return view('results.index', ['batches' => $q->orderByDesc('id')->paginate(20)->withQueryString(), 'filters' => $filters]);
+        return view('results.index', ['batches' => $q->orderByDesc('id')->paginateTable(20)->withQueryString(), 'filters' => $filters]);
     }
 
     public function create(Request $request)
@@ -47,14 +47,14 @@ class ResultApprovalController extends Controller
                 if ($data['q'] ?? null) {
                     $q->where('name', 'like', '%'.$data['q'].'%');
                 }
-                $records = $q->orderBy('name')->paginate(20)->withQueryString();
+                $records = $q->orderBy('name')->paginateTable(20)->withQueryString();
             }
         } else {
             $q = Exam::with(['academicYear', 'schoolClass'])->where('status', 'MARKS_ENTRY')->whereDoesntHave('resultBatches', fn ($b) => $b->where('status', '!=', 'RETURNED'));
             if ($data['q'] ?? null) {
                 $q->where('name', 'like', '%'.$data['q'].'%');
             }
-            $records = $q->orderByDesc('id')->paginate(20)->withQueryString();
+            $records = $q->orderByDesc('id')->paginateTable(20)->withQueryString();
         }
 
         return view('results.create', compact('exam', 'scheme', 'records', 'data'));
@@ -73,7 +73,7 @@ class ResultApprovalController extends Controller
         Gate::authorize('view', $result_batch);
         $result_batch->load(['exam.academicYear', 'generatedBy', 'approvedBy', 'publishedBy', 'returnedBy']);
 
-        return view('results.show', ['batch' => $result_batch, 'drafts' => $result_batch->status === 'PUBLISHED' ? app(PublishedResultReader::class)->forBatch($result_batch) : $result_batch->drafts()->orderBy('enrollment_id')->paginate(20)->withQueryString()]);
+        return view('results.show', ['batch' => $result_batch, 'drafts' => $result_batch->status === 'PUBLISHED' ? app(PublishedResultReader::class)->forBatch($result_batch) : $result_batch->drafts()->orderBy('enrollment_id')->paginateTable(20)->withQueryString()]);
     }
 
     public function student(Request $request, ResultBatch $result_batch, ResultDraft $result_draft)
@@ -94,7 +94,7 @@ class ResultApprovalController extends Controller
     {
         Gate::authorize('view', $student_result);
 
-        return view('results.snapshot', ['snapshot' => $student_result, 'subjects' => $student_result->subjects()->orderBy('subject_id')->paginate(20)->withQueryString()]);
+        return view('results.snapshot', ['snapshot' => $student_result, 'subjects' => $student_result->subjects()->orderBy('subject_id')->paginateTable(20)->withQueryString()]);
     }
 
     public function transition(Request $request, ResultBatch $result_batch, ResultApprovalService $service)

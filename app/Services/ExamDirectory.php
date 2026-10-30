@@ -28,6 +28,6 @@ class ExamDirectory
             });
         }
 
-        return $query->orderByDesc('academic_year_id')->orderBy('name')->orderBy('id')->paginate(20)->withQueryString();
+        return $query->orderByDesc('academic_year_id')->orderBy('name')->orderBy('id')->paginateTable(20)->withQueryString();
     }
 }

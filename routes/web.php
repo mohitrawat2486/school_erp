@@ -5,6 +5,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ClassResultController;
 use App\Http\Controllers\ClassSubjectController;
+use App\Http\Controllers\ClassTeacherPickerController;
 use App\Http\Controllers\EmployeeAccountController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExamController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentEnrollmentController;
 use App\Http\Controllers\StudentGuardianController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\SubjectClassesController;
 use App\Http\Controllers\TeacherAssignmentController;
 use App\Http\Controllers\TeacherProfileController;
 use App\Models\User;
@@ -171,6 +173,7 @@ Route::middleware('auth')->group(function () {
             Route::resource('teachers', TeacherProfileController::class)->parameters(['teachers' => 'teacher_profile'])->except('destroy');
         });
         Route::prefix('academics')->middleware('can:class.view')->group(function () {
+            Route::get('classes/teacher-options', ClassTeacherPickerController::class)->middleware('throttle:120,1')->name('classes.teacher-options');
             Route::post('classes/{school_class}/activate', [SchoolClassController::class, 'activate'])->name('classes.activate');
             Route::post('classes/{school_class}/deactivate', [SchoolClassController::class, 'deactivate'])->name('classes.deactivate');
             Route::resource('classes', SchoolClassController::class)->parameters(['classes' => 'school_class'])->except('destroy');
@@ -182,6 +185,8 @@ Route::middleware('auth')->group(function () {
             Route::resource('sections', SectionController::class)->except('destroy');
         });
         Route::prefix('academics')->middleware('can:subject.view')->group(function () {
+            Route::get('subjects/{subject}/classes', [SubjectClassesController::class, 'edit'])->name('subjects.classes.edit');
+            Route::put('subjects/{subject}/classes', [SubjectClassesController::class, 'update'])->name('subjects.classes.update');
             Route::post('subjects/{subject}/activate', [SubjectController::class, 'activate'])->name('subjects.activate');
             Route::post('subjects/{subject}/deactivate', [SubjectController::class, 'deactivate'])->name('subjects.deactivate');
             Route::resource('subjects', SubjectController::class)->except('destroy');

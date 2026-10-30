@@ -40,7 +40,7 @@ class ExamTermController extends Controller
     {
         Gate::authorize('view', $exam_term);
 
-        return view('exam-terms.show', ['term' => $exam_term, 'exams' => $exam_term->exams()->with(ExamDirectory::RELATIONS)->orderBy('start_date')->orderBy('id')->paginate(20)]);
+        return view('exam-terms.show', ['term' => $exam_term, 'exams' => $exam_term->exams()->with(ExamDirectory::RELATIONS)->orderBy('start_date')->orderBy('id')->paginateTable(20)]);
     }
 
     public function edit(ExamTerm $exam_term): View

@@ -78,7 +78,7 @@ class ClassResultDirectory
             $q->where($name, 'like', '%'.$search.'%');
         }
 
-        return $q->select($field)->selectRaw('MIN('.$name.') as name')->groupBy($field)->orderBy($field)->paginate(20)->withQueryString();
+        return $q->select($field)->selectRaw('MIN('.$name.') as name')->groupBy($field)->orderBy($field)->paginateTable(20, ['*'], 'page', [$name])->withQueryString();
     }
 
     public function output(array $filters, string $scope, array $ids = [])

@@ -300,4 +300,36 @@ class SectionTest extends TestCase
         }
         $this->assertDatabaseCount('sections', 0);
     }
+
+    public function test_unused_section_deletion_is_school_scoped_and_audited(): void
+    {
+        $admin = $this->admin();
+        $section = $this->section($admin);
+        $id = $section->id;
+        $classId = $section->class_id;
+        app(SectionService::class)->deleteUnused($admin, $section);
+        $this->assertDatabaseMissing('sections', ['id' => $id]);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'SECTION_DELETED', 'entity_id' => $id, 'school_id' => $admin->school_id]);
+        $log = DB::table('audit_logs')->where('action', 'SECTION_DELETED')->where('entity_id', $id)->first();
+        $this->assertSame($classId, json_decode($log->old_values, true)['class_id']);
+        $foreign = User::factory()->create();
+        $otherSection = $this->section($foreign);
+        app(CurrentSchool::class)->set($admin->school);
+        $this->expectException(AuthorizationException::class);
+        app(SectionService::class)->deleteUnused($admin, $otherSection);
+    }
+
+    public function test_audit_failure_rolls_back_section_deletion(): void
+    {
+        $admin = $this->admin();
+        $section = $this->section($admin);
+        $this->mock(AuditLogger::class)->shouldReceive('record')->once()->andThrow(new \RuntimeException('Audit unavailable'));
+        try {
+            app(SectionService::class)->deleteUnused($admin, $section);
+            $this->fail('Section deletion must roll back.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Audit unavailable', $exception->getMessage());
+        }
+        $this->assertDatabaseHas('sections', ['id' => $section->id]);
+    }
 }

@@ -38,7 +38,7 @@ class ExamSubjectController extends Controller
             $query->whereHas('subject', fn ($s) => $s->where(fn ($i) => $i->where('name', 'like', '%'.$q.'%')->orWhere('code', 'like', '%'.$q.'%')));
         }
 
-        return view('exam-subjects.select', ['exam' => $exam, 'allocations' => $query->orderBy('subject_id')->orderBy('id')->paginate(20)->withQueryString(), 'q' => $q]);
+        return view('exam-subjects.select', ['exam' => $exam, 'allocations' => $query->orderBy('subject_id')->orderBy('id')->paginateTable(20)->withQueryString(), 'q' => $q]);
     }
 
     public function store(SaveExamSubjectRequest $request, Exam $exam, ExamSubjectService $service): RedirectResponse

@@ -120,7 +120,7 @@ class SubjectModuleTest extends TestCase
         $this->actingAs($admin)->get($this->allocations.'/create')->assertOk()->assertSee('Choose academic year');
         $this->get($this->allocations.'/create?'.http_build_query(['academic_year_id' => $ids['academic_year_id']]))->assertOk()->assertSee('Choose class');
         $this->get($this->allocations.'/create?'.http_build_query(array_diff_key($ids, ['subject_id' => true])))->assertOk()->assertSee('Choose subject');
-        $this->get($this->allocations.'/create?'.http_build_query($ids))->assertOk()->assertSee('Allocate Subject');
+        $this->get($this->allocations.'/create?'.http_build_query($ids))->assertOk()->assertSee('Assign subject');
         $this->post($this->allocations, [...$ids, ...$this->marks()])->assertRedirect();
         $id = DB::table('class_subjects')->value('id');
         $this->get($this->allocations.'/'.$id)->assertOk()->assertSee('100.00');

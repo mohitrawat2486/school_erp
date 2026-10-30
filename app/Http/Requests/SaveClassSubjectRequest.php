@@ -8,6 +8,7 @@ use App\Enums\SubjectStatus;
 use App\Models\ClassSubject;
 use App\Support\CurrentSchool;
 use App\Support\MarksConfiguration;
+use App\Support\SubjectWorkspace;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -44,7 +45,7 @@ class SaveClassSubjectRequest extends FormRequest
             $rules[$field] = ['required', 'integer', $exists];
         }
 
-        return $rules;
+        return $rules + SubjectWorkspace::rules();
     }
 
     public function withValidator(Validator $validator): void

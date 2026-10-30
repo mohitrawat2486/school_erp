@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\ClassSubjectStatus;
 use App\Models\ClassSubject;
 use App\Support\CurrentSchool;
+use App\Support\SubjectWorkspace;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,6 +26,6 @@ class ClassSubjectIndexRequest extends FormRequest
             } $rules[$field] = ['nullable', 'integer', $exists];
         }
 
-        return $rules;
+        return $rules + SubjectWorkspace::rules();
     }
 }

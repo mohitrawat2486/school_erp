@@ -29,7 +29,7 @@ class ExamSetupSelection
                     $query->orderBy('sort_order');
                 }
 
-                return ['items' => $query->orderBy('id')->paginate(20)->withQueryString(), 'step' => $step, 'field' => $field, 'selection' => $selection, 'context' => $context, 'q' => $q, 'forTerm' => $term];
+                return ['items' => $query->orderBy('id')->paginateTable(20)->withQueryString(), 'step' => $step, 'field' => $field, 'selection' => $selection, 'context' => $context, 'q' => $q, 'forTerm' => $term];
             }
             $record = $query->whereKey($data[$field])->firstOrFail();
             $selection[$field] = $record->id;

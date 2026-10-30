@@ -16,7 +16,7 @@ class RoleAdministrationController extends Controller
     {
         Gate::authorize('viewAny', Role::class);
 
-        return view('administration.roles.index', ['roles' => Role::orderBy('name')->paginate(20)]);
+        return view('administration.roles.index', ['roles' => Role::orderBy('name')->paginateTable(20)]);
     }
 
     public function create(): View

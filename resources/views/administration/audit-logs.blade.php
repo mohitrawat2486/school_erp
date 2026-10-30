@@ -22,7 +22,7 @@
                 <td class="p-4"><span class="block text-xs text-slate-500">{{ $log->module }}</span><span class="font-semibold">{{ $log->action }}</span></td>
                 <td class="p-4">{{ $log->entity_type }} #{{ $log->entity_id }}</td>
                 <td class="p-4">@if(isset($log->context['student_name']))<span class="block font-semibold">{{ $log->context['student_name'] }}</span><span class="block text-slate-500">{{ $log->context['subject_name'] ?? '' }}</span>@else<span class="text-slate-500">—</span>@endif</td>
-                <td class="p-4"><a href="{{ route('audit.show', $log) }}" class="table-action font-semibold text-[#8b2f24] underline">View changes</a></td>
+                <td class="p-4"><x-action-link :href="route('audit.show', $log)" label="View changes" icon="eye" /></td>
             </tr>
         @empty
             <tr><td colspan="6" class="p-6 text-slate-500">No recorded changes match these filters.</td></tr>

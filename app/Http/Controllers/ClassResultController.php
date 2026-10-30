@@ -31,7 +31,7 @@ class ClassResultController extends Controller
         $query = $directory->query($filters);
         $context = $directory->query($filters, true)->firstOrFail();
 
-        return view('class-results.index', ['results' => $query->paginate(20)->withQueryString(), 'filters' => $filters, 'context' => $context, 'sectionName' => ($filters['section_id'] ?? null) ? $directory->query(array_diff_key($filters, ['q' => 1, 'result_status' => 1]))->value('section_name') : null]);
+        return view('class-results.index', ['results' => $query->paginateTable(20, ['*'], 'page', ['student_name'])->withQueryString(), 'filters' => $filters, 'context' => $context, 'sectionName' => ($filters['section_id'] ?? null) ? $directory->query(array_diff_key($filters, ['q' => 1, 'result_status' => 1]))->value('section_name') : null]);
     }
 
     public function print(Request $request, ClassResultDirectory $directory)

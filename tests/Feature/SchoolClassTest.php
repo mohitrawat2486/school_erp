@@ -74,7 +74,7 @@ class SchoolClassTest extends TestCase
     public function test_validation_rejects_invalid_fields_and_direct_status_changes(): void
     {
         $admin = $this->admin();
-        $this->actingAs($admin)->post($this->base, $this->data(['name' => '', 'code' => 'bad code', 'sort_order' => -1, 'school_id' => 999, 'status' => 'INACTIVE', 'academic_year_id' => 1, 'section_id' => 1]))->assertSessionHasErrors(['name', 'code', 'sort_order', 'school_id', 'status', 'academic_year_id', 'section_id']);
+        $this->actingAs($admin)->post($this->base, $this->data(['name' => '', 'code' => 'bad code', 'sort_order' => -1, 'school_id' => 999, 'status' => 'INACTIVE', 'academic_year_id' => 1, 'section_id' => 1]))->assertSessionHasErrors(['name', 'sort_order', 'school_id', 'status', 'academic_year_id', 'section_id']);
         foreach (['1.5', '4294967296', 'invalid'] as $order) {
             $this->post($this->base, $this->data(['sort_order' => $order]))->assertSessionHasErrors('sort_order');
         }
@@ -86,11 +86,11 @@ class SchoolClassTest extends TestCase
     public function test_names_and_codes_are_unique_within_school_including_inactive_classes(): void
     {
         $admin = $this->admin();
-        $existing = $this->schoolClass($admin, ['name' => 'Nursery', 'code' => 'NUR', 'status' => 'INACTIVE']);
+        $existing = $this->schoolClass($admin, ['name' => 'Nursery', 'code' => 'NURSERY', 'status' => 'INACTIVE']);
         $other = User::factory()->create();
-        $this->schoolClass($other, ['name' => 'Nursery', 'code' => 'NUR']);
+        $this->schoolClass($other, ['name' => 'Nursery', 'code' => 'NURSERY']);
         $this->actingAs($admin)->post($this->base, $this->data(['code' => 'NEW']))->assertSessionHasErrors('name');
-        $this->post($this->base, $this->data(['name' => 'New class']))->assertSessionHasErrors('code');
+        $this->post($this->base, $this->data(['name' => 'Nursery!']))->assertSessionHasErrors('code');
         $this->put($this->base.'/'.$existing->id, $this->data())->assertRedirect();
         $this->assertDatabaseCount('classes', 2);
     }

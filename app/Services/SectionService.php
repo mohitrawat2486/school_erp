@@ -9,6 +9,7 @@ use App\Models\SchoolClass;
 use App\Models\Section;
 use App\Models\User;
 use App\Support\CurrentSchool;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -91,6 +92,29 @@ class SectionService
             $record->status = $status;
             $record->save();
             app(AuditLogger::class)->record($actor, $status === SectionStatus::Active ? 'SECTION_ACTIVATED' : 'SECTION_DEACTIVATED', 'section', $record->id, $old, $record->only(Section::AUDIT_FIELDS), 'academics');
+        });
+    }
+
+    public function deleteUnused(User $actor, Section $section): void
+    {
+        $this->authorize($actor, $section);
+        DB::transaction(function () use ($actor, $section) {
+            $this->lockSchool();
+            $record = Section::whereKey($section->id)->withUsage()->lockForUpdate()->firstOrFail();
+            $this->authorize($actor, $record);
+            if ($record->isInUse()) {
+                throw ValidationException::withMessages(['sections' => 'Section '.$record->name.' has students, teachers or academic history. Keep it selected.']);
+            }
+            $before = $record->only(Section::AUDIT_FIELDS);
+            try {
+                $record->delete();
+            } catch (QueryException $exception) {
+                if (($exception->errorInfo[1] ?? null) !== 1451) {
+                    throw $exception;
+                }
+                throw ValidationException::withMessages(['sections' => 'Section '.$record->name.' is referenced by another record and cannot be removed.']);
+            }
+            app(AuditLogger::class)->record($actor, 'SECTION_DELETED', 'section', $record->id, $before, [], 'academics');
         });
     }
 }

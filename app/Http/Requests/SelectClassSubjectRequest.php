@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\ClassSubject;
+use App\Support\SubjectWorkspace;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SelectClassSubjectRequest extends FormRequest
@@ -14,6 +15,6 @@ class SelectClassSubjectRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['q' => ['nullable', 'string', 'max:100'], 'academic_year_id' => ['nullable', 'integer'], 'class_id' => ['nullable', 'integer'], 'subject_id' => ['nullable', 'integer']];
+        return ['q' => ['nullable', 'string', 'max:100'], 'academic_year_id' => ['nullable', 'integer'], 'class_id' => ['nullable', 'integer'], 'subject_id' => ['nullable', 'integer']] + SubjectWorkspace::rules();
     }
 }

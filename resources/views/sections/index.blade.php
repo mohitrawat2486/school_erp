@@ -15,7 +15,7 @@
 </form>
 <x-data-table :records="$sections" title="Class sections" icon="sections"><table class="w-full text-left text-sm"><thead class="bg-slate-50"><tr><th class="p-4">Class</th><th class="p-4">Section</th><th class="p-4">Capacity</th><th class="p-4">Status</th><th class="p-4">Action</th></tr></thead><tbody>
 @forelse($sections as $section)
-<tr class="border-t border-slate-200"><td class="p-4">{{ $section->schoolClass->name }} ({{ $section->schoolClass->code }})</td><td class="p-4 font-semibold">{{ $section->name }}</td><td class="p-4">{{ $section->capacity ?? 'Not set' }}</td><td class="p-4"><x-status-badge :value="$section->status->value" :muted="!$section->isEligible()" /></td><td class="p-4"><a href="{{ route('sections.show',$section) }}" class="font-semibold text-[#8b2f24] underline table-action"><span>View</span><x-icon name="chevron-right" /></a></td></tr>
+<tr class="border-t border-slate-200"><td class="p-4">{{ $section->schoolClass->name }} ({{ $section->schoolClass->code }})</td><td class="p-4 font-semibold">{{ $section->name }}</td><td class="p-4">{{ $section->capacity ?? 'Not set' }}</td><td class="p-4"><x-status-badge :value="$section->status->value" :muted="!$section->isEligible()" /></td><td class="p-4"><x-action-link :href="route('sections.show',$section)" label="View" icon="eye" /></td></tr>
 @empty
 <tr><td colspan="5" class="p-8 text-center text-slate-500">No sections match your filters.</td></tr>
 @endforelse
