@@ -39,13 +39,7 @@
 
                 @can('student.view')
                     <p class="sidebar-group-label">Students</p>
-                    <x-sidebar-link :href="route('students.index')" :active="request()->routeIs('students.*') && !request()->routeIs('students.create')" icon="users" label="Student List" />
-                    <x-sidebar-link :href="route('enrollments.index')" :active="request()->routeIs('enrollments.*')" icon="classes" label="Enrollment" />
-                    <x-sidebar-link :href="route('promotions.index')" :active="request()->routeIs('promotions.*')" icon="assignment" label="Promotion" />
-                    <x-sidebar-link :href="route('guardians.index')" :active="request()->routeIs('guardians.*')" icon="users" label="Guardians" />
-                    @can('create', \App\Models\Student::class)
-                        <x-sidebar-link :href="route('students.create')" :active="request()->routeIs('students.create')" icon="plus" label="Admission" />
-                    @endcan
+                    <x-sidebar-link :href="route('students.index')" :active="request()->routeIs('students.*', 'enrollments.*', 'promotions.*', 'guardians.*')" icon="users" label="Students" />
                 @endcan
                 @if(auth()->user()->can('employee.view') || auth()->user()->can('teacher.view'))
                     <p class="sidebar-group-label">Employees</p>

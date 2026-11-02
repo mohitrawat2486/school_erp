@@ -15,6 +15,8 @@ use App\Models\Student;
 use App\Models\StudentEnrollment;
 use App\Models\User;
 use App\Support\CurrentSchool;
+use App\Support\StudentEnrollmentState;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -107,6 +109,33 @@ class EnrollmentService
         });
     }
 
+    public function correctPlacement(User $actor, StudentEnrollment $enrollment, array $data): StudentEnrollment
+    {
+        $this->authorize($actor, $enrollment);
+        Validator::make($data, ['class_id' => ['required', 'integer', 'min:1'], 'section_id' => ['required', 'integer', 'min:1'], 'roll_number' => ['required', 'integer', 'between:1,4294967295'], 'joined_at' => ['required', 'date_format:Y-m-d'], 'student_id' => ['prohibited'], 'academic_year_id' => ['prohibited'], 'school_id' => ['prohibited'], 'status' => ['prohibited']])->validate();
+
+        return DB::transaction(function () use ($actor, $enrollment, $data) {
+            School::whereKey(app(CurrentSchool::class)->id())->lockForUpdate()->firstOrFail();
+            $record = StudentEnrollment::whereKey($enrollment->id)->lockForUpdate()->firstOrFail();
+            $this->authorize($actor, $record);
+            if (StudentEnrollmentState::isUsed($record)) {
+                throw ValidationException::withMessages(['class_id' => 'Class and section cannot change because academic records depend on this enrollment.']);
+            }
+            $before = $record->only(StudentEnrollment::AUDIT_FIELDS);
+            $record->class_id = $data['class_id'];
+            $record->section_id = $data['section_id'];
+            $record->fill(Arr::only($data, ['roll_number', 'joined_at']));
+            [$year, $student, $section] = $this->context($record->only(StudentEnrollment::CONTEXT), true);
+            $this->validatePlacement($record, $year, $student, $section);
+            if ($record->isDirty()) {
+                $record->save();
+                app(AuditLogger::class)->record($actor, 'ENROLLMENT_PLACEMENT_CORRECTED', 'student_enrollment', $record->id, $before, $record->only(StudentEnrollment::AUDIT_FIELDS), 'enrollments');
+            }
+
+            return $record;
+        });
+    }
+
     public function setStatus(User $actor, StudentEnrollment $enrollment, EnrollmentStatus $status): void
     {
         $this->authorize($actor, $enrollment);
@@ -116,7 +145,7 @@ class EnrollmentService
             $record = StudentEnrollment::whereKey($enrollment->id)->lockForUpdate()->firstOrFail();
             $this->authorize($actor, $record);
             if (! in_array($status, [EnrollmentStatus::Active, EnrollmentStatus::Inactive], true)) {
-                throw ValidationException::withMessages(['status' => 'Use the promotion exit workflow for withdrawal or transfer.']);
+                throw ValidationException::withMessages(['status' => 'Use Withdraw or Transfer in Edit Student to record a departure.']);
             }
             [$year,$student,$section] = $this->context($record->only(StudentEnrollment::CONTEXT), $status === EnrollmentStatus::Active);
             if ($record->status === $status) {

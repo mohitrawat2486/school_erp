@@ -15,7 +15,9 @@ use App\Support\TeacherWorkspace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TeacherProfileController extends Controller
 {
@@ -64,7 +66,7 @@ class TeacherProfileController extends Controller
 
     public function store(SaveTeacherProfileRequest $request, TeacherProfileService $service): RedirectResponse
     {
-        $profile = $service->save($request->user(), null, $request->validated());
+        $profile = $service->save($request->user(), null, $request->validated(), $request->file('photo'));
 
         return redirect()->route('teachers.show', ['teacher_profile' => $profile->id, ...TeacherWorkspace::context($request)])->with('status', 'Teacher profile created.');
     }
@@ -91,7 +93,7 @@ class TeacherProfileController extends Controller
 
     public function update(SaveTeacherProfileRequest $request, TeacherProfile $teacher_profile, TeacherProfileService $service): RedirectResponse
     {
-        $service->save($request->user(), $teacher_profile, $request->validated());
+        $service->save($request->user(), $teacher_profile, $request->validated(), $request->file('photo'));
 
         return redirect()->route('teachers.show', ['teacher_profile' => $teacher_profile->id, ...TeacherWorkspace::context($request)])->with('status', 'Teacher profile saved.');
     }
@@ -102,6 +104,15 @@ class TeacherProfileController extends Controller
         $service->setStatus($request->user(), $teacher_profile, TeacherProfileStatus::Active);
 
         return redirect()->route('teachers.show', ['teacher_profile' => $teacher_profile->id, ...$workspace])->with('status', 'Teacher profile activated.');
+    }
+
+    public function photo(TeacherProfile $teacher_profile): StreamedResponse
+    {
+        Gate::authorize('view', $teacher_profile);
+        $path = $teacher_profile->employee->photo_path;
+        abort_unless($path && Storage::disk('local')->exists($path), 404);
+
+        return Storage::disk('local')->response($path, null, ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
     }
 
     public function deactivate(Request $request, TeacherProfile $teacher_profile, TeacherProfileService $service): RedirectResponse

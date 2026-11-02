@@ -113,6 +113,9 @@ class TeacherAssignmentController extends Controller
                     if (isset($data['scope'])) {
                         $selection['scope'] = $data['scope'];
                     }
+                    if (($data['scope'] ?? null) === 'SECTION' && isset($data['section_id'])) {
+                        $selection['section_id'] = Section::eligible()->where('class_id', $selection['class_id'])->whereKey($data['section_id'])->firstOrFail()->id;
+                    }
                 }
 
                 return $this->picker($teachers, $request, 'teacher', $selection, true);

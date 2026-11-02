@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\EmployeeType;
 use App\Models\Employee;
+use App\Rules\AadhaarNumber;
 use App\Support\CurrentSchool;
 use App\Support\RasterImageRules;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,6 +28,7 @@ class SaveEmployeeRequest extends FormRequest
 
         return [
             'employee_number' => ['required', 'string', 'max:50', $unique],
+            'aadhaar_number' => ['required', 'string', new AadhaarNumber],
             'first_name' => ['required', 'string', 'max:100'], 'middle_name' => ['nullable', 'string', 'max:100'], 'last_name' => ['nullable', 'string', 'max:100'],
             'employee_type' => ['required', Rule::enum(EmployeeType::class)], 'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'], 'alternate_phone' => ['nullable', 'string', 'max:30'], 'gender' => ['nullable', Rule::in(array_keys(Employee::GENDERS))],

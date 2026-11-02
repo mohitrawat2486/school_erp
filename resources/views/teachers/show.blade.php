@@ -1,5 +1,5 @@
 <x-app-layout :title="$profile->employee->fullName()" :full-width="true">
-<a href="{{ route('teachers.index', $workspace['directory'] ?? []) }}" class="text-sm font-semibold text-[#8b2f24]">← Teachers</a><div class="mt-4 mb-6 flex flex-wrap items-center justify-between gap-4"><div><h1 class="text-3xl font-bold">{{ $profile->employee->fullName() }}</h1><p class="mt-2 text-slate-500">{{ $profile->employee->employee_number }} · {{ $profile->employee->employee_type->label() }}</p></div>
+<a href="{{ route('teachers.index', $workspace['directory'] ?? []) }}" class="text-sm font-semibold text-[#8b2f24]">← Teachers</a><div class="mt-4 mb-6 flex flex-wrap items-center justify-between gap-4"><div class="flex min-w-0 items-center gap-4"><x-teacher-avatar :profile="$profile" :large="true" /><div class="min-w-0"><h1 class="break-words text-3xl font-bold">{{ $profile->employee->fullName() }}</h1><p class="mt-2 text-slate-500">{{ $profile->employee->employee_number }} · {{ $profile->employee->employee_type->label() }}</p></div></div>
 <div class="table-actions">
 @can('update',$profile)
 <x-action-link :href="route('teachers.edit',['teacher_profile'=>$profile->id,...$workspace])" label="Edit teacher profile" icon="pencil" />

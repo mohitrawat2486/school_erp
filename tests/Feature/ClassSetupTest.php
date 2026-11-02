@@ -71,7 +71,7 @@ class ClassSetupTest extends TestCase
             $this->assertSame($count, DB::table('audit_logs')->where('action', $action)->count());
         }
         $this->get('/academics/classes/'.$class->id)->assertOk()->assertSee('Blue')->assertSee('Assign teachers')->assertSee($c['subjects'][0]->name);
-        $this->get('/academics/classes')->assertOk()->assertSee('A, B, Blue');
+        $this->get('/academics/classes?view=classes')->assertOk()->assertSee('A, B, Blue');
     }
 
     public function test_class_can_be_created_without_year_sections_or_subjects_and_custom_names_work(): void
@@ -391,7 +391,7 @@ class ClassSetupTest extends TestCase
         $c = $this->setupData();
         $class = $this->editableClass($c);
         $class->sections()->where('name', 'Blue')->firstOrFail()->forceFill(['status' => 'INACTIVE'])->save();
-        $this->actingAs($c['admin'])->get('/academics/classes')->assertOk()->assertDontSee('Blue')
+        $this->actingAs($c['admin'])->get('/academics/classes?view=classes')->assertOk()->assertDontSee('Blue')
             ->assertViewHas('classes', fn ($classes) => $classes->first()->sections->pluck('name')->all() === ['A']);
         $this->get('/academics/classes/'.$class->id)->assertOk()->assertViewHas('sections', fn ($sections) => $sections->pluck('name')->all() === ['A']);
         $class->sections()->where('name', 'A')->firstOrFail()->forceFill(['status' => 'INACTIVE'])->save();

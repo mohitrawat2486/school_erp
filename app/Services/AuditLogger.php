@@ -16,7 +16,7 @@ class AuditLogger
         }
         $redact = function (array $values) use (&$redact): array {
             foreach ($values as $key => $value) {
-                if (preg_match('/password|token|secret/i', (string) $key)) {
+                if (preg_match('/password|token|secret|aadhaar|aadhar/i', (string) $key)) {
                     $values[$key] = '[REDACTED]';
                 } elseif (is_array($value)) {
                     $values[$key] = $redact($value);

@@ -58,20 +58,20 @@ class ListTableTest extends TestCase
         app(CurrentSchool::class)->set($other->school);
         SchoolClass::factory()->create(['name' => 'Foreign Class']);
         app(CurrentSchool::class)->set($admin->school);
-        $this->actingAs($admin)->get('/academics/classes?'.http_build_query(['tables' => ['page' => ['search' => 'Foreign']]]))->assertOk()->assertViewHas('classes', fn ($rows) => $rows->total() === 0)->assertDontSee('Foreign Class');
-        $this->get('/academics/classes?'.http_build_query(['status' => 'INACTIVE', 'tables' => ['page' => ['search' => 'My Class']]]))->assertOk()->assertViewHas('classes', fn ($rows) => $rows->total() === 0);
+        $this->actingAs($admin)->get('/academics/classes?'.http_build_query(['view' => 'classes', 'tables' => ['page' => ['search' => 'Foreign']]]))->assertOk()->assertViewHas('classes', fn ($rows) => $rows->total() === 0)->assertDontSee('Foreign Class');
+        $this->get('/academics/classes?'.http_build_query(['view' => 'classes', 'status' => 'INACTIVE', 'tables' => ['page' => ['search' => 'My Class']]]))->assertOk()->assertViewHas('classes', fn ($rows) => $rows->total() === 0);
     }
 
     public function test_invalid_lengths_and_search_payloads_are_rejected_and_fallback_pagination_remains(): void
     {
         $admin = $this->context();
         SchoolClass::factory()->count(22)->create();
-        $this->actingAs($admin)->get('/academics/classes')->assertOk()->assertSee('aria-label="Page 2"', false)->assertViewHas('classes', fn ($rows) => $rows->perPage() === 20);
+        $this->actingAs($admin)->get('/academics/classes?view=classes')->assertOk()->assertSee('aria-label="Page 2"', false)->assertViewHas('classes', fn ($rows) => $rows->perPage() === 20);
         foreach ([['length' => -1], ['length' => 10000], ['length' => 11], ['search' => str_repeat('x', 101)], ['search' => ['bad']], ['column' => 'school_id']] as $state) {
-            $this->getJson('/academics/classes?'.http_build_query(['tables' => ['page' => $state]]))->assertUnprocessable();
+            $this->getJson('/academics/classes?'.http_build_query(['view' => 'classes', 'tables' => ['page' => $state]]))->assertUnprocessable();
         }
         $this->getJson('/academics/classes?tables=bad')->assertUnprocessable();
-        $this->get('/academics/classes?'.http_build_query(['tables' => ['page' => ['search' => "' OR 1=1 --"]]]))->assertOk()->assertViewHas('classes', fn ($rows) => $rows->total() === 0);
+        $this->get('/academics/classes?'.http_build_query(['view' => 'classes', 'tables' => ['page' => ['search' => "' OR 1=1 --"]]]))->assertOk()->assertViewHas('classes', fn ($rows) => $rows->total() === 0);
     }
 
     public function test_all_configured_searches_have_valid_columns_and_relationships(): void

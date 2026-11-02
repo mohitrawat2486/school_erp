@@ -8,19 +8,21 @@ use App\Models\Employee;
 use App\Models\School;
 use App\Models\TeacherProfile;
 use App\Models\User;
+use App\Rules\AadhaarNumber;
 use App\Support\CurrentSchool;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Throwable;
 
 class EmployeeService
 {
-    public const FIELDS = ['employee_number', 'first_name', 'middle_name', 'last_name', 'employee_type', 'email', 'phone', 'alternate_phone', 'gender', 'date_of_birth', 'joining_date', 'designation', 'department', 'address'];
+    public const FIELDS = ['employee_number', 'first_name', 'middle_name', 'last_name', 'employee_type', 'email', 'phone', 'alternate_phone', 'gender', 'date_of_birth', 'joining_date', 'designation', 'department', 'address', 'aadhaar_number'];
 
     private function lockSchool(): void
     {
@@ -42,6 +44,7 @@ class EmployeeService
     public function save(User $actor, ?Employee $employee, array $data, ?UploadedFile $photo = null): Employee
     {
         $this->authorize($actor, $employee);
+        Validator::make($data, ['aadhaar_number' => ['required', 'string', new AadhaarNumber]])->validate();
         $newPath = null;
         try {
             if ($photo) {

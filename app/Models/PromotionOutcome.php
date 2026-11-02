@@ -15,7 +15,7 @@ class PromotionOutcome extends Model
 
     protected function casts(): array
     {
-        return ['action' => PromotionAction::class];
+        return ['action' => PromotionAction::class, 'departure_date' => 'date'];
     }
 
     public function batch(): BelongsTo

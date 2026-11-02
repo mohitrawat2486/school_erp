@@ -16,13 +16,15 @@ class Employee extends Model
 
     public const GENDERS = ['MALE' => 'Male', 'FEMALE' => 'Female', 'OTHER' => 'Other', 'PREFER_NOT_TO_SAY' => 'Prefer not to say'];
 
-    protected $fillable = ['employee_number', 'first_name', 'middle_name', 'last_name', 'employee_type', 'email', 'phone', 'alternate_phone', 'gender', 'date_of_birth', 'joining_date', 'designation', 'department', 'address'];
+    protected $fillable = ['employee_number', 'first_name', 'middle_name', 'last_name', 'employee_type', 'email', 'phone', 'alternate_phone', 'gender', 'date_of_birth', 'joining_date', 'designation', 'department', 'address', 'aadhaar_number'];
+
+    protected $hidden = ['aadhaar_number'];
 
     protected $attributes = ['status' => 'ACTIVE', 'employee_type' => 'OTHER'];
 
     protected function casts(): array
     {
-        return ['date_of_birth' => 'date', 'joining_date' => 'date', 'employee_type' => EmployeeType::class, 'status' => EmployeeStatus::class];
+        return ['date_of_birth' => 'date', 'joining_date' => 'date', 'employee_type' => EmployeeType::class, 'status' => EmployeeStatus::class, 'aadhaar_number' => 'encrypted'];
     }
 
     public function school(): BelongsTo

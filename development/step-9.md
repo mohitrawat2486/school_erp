@@ -144,3 +144,16 @@ The local MySQL server version is unchanged.
 
 Subjects and year-specific Class Subjects (plan Phase 8): school subject catalog and academic-year/class
 allocations, marks limits, authorization, audit logging and tests.
+
+
+## Sections directory redesign (2026-11-02)
+
+The Sections list now follows the Classes directory design with four overview cards, compact full-width rows, accessible icon actions, mobile layouts and the shared DataTables pagination. Bulk Create is omitted following the Classes preference. The instructions use the existing help-dialog behavior, including keyboard focus, Escape dismissal and an expandable fallback without JavaScript.
+
+`SectionDirectory` supplies real school-scoped totals, year-specific eligible class teachers, reference search, filters and streamed CSV rows. Section references combine the existing class code and section name; no duplicate code field or migration is introduced. Capacity remains visible. The selected year is retained when assigning a teacher, including after choosing the teacher in the existing assignment picker.
+
+Overview totals count all sections. Active includes sections pending teacher assignment; Pending selects eligible sections with no active class teacher for the selected year. Inactive sections remain visible here, while the Classes roster continues hiding them. Whole-class teacher assignments cover their sections. No year means assignment counts are unknown; restricted users receive neither teacher details nor teacher export columns. Closed years support viewing, with assignment actions hidden. Existing permissions, school boundaries and lifecycle behavior remain in place.
+
+CSV export uses the same filters as the list, includes every matching page, respects teacher visibility and escapes formula-like cells. Desktop and mobile previews are in `development/previews/sections-directory-1440.png` and `sections-directory-390.png`.
+
+Verification: feature tests cover totals, class-wide coverage, status/class/reference/teacher search, selected years, inactive teachers, permission boundaries, no current year, assignment context, pagination, school isolation and export. Browser checks cover 320, 390, 768, 1440 and 1920 pixel widths, working filters/search/pagination, synchronized export links, modal keyboard behavior, retry and the no-JavaScript fallback. Browser fixtures use a rolled-back testing database transaction.

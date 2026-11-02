@@ -4,6 +4,8 @@ Open **Academics → Classes → Add class**. Enter the class name, select secti
 
 ## Staff workflow
 
+- On Classes, choose **How it works** beside Add class for a short guide to classes/sections, class versus subject teachers, changing teachers and an example. The guide opens on request in a modal so the list remains uncluttered. Close with Got it, the close button, Escape or a backdrop click; focus returns to the help button. Without JavaScript, the same guide is available as an expandable section.
+
 - Names such as **Class 2**, **Nursery** and **LKG** generate **CLASS-2**, **NURSERY** and **LKG**. The form previews ordinary codes; complex names are confirmed after saving. Codes are generated on the server, so submitted overrides are ignored. Names that generate an existing code receive a clear validation message.
 - Section A starts selected for staff who can manage sections. Choose A–D, add custom names such as Blue, set optional student limits, or select **I’ll add sections later**. Duplicate section names are rejected without saving part of the setup.
 - The active current academic year appears above a searchable list of active school subjects. Selection applies to every section. **Copy subjects from another class** replaces the selection with active subject mappings from that same year; review the visible selection before saving. It copies subject choices, not marks settings.
@@ -76,3 +78,29 @@ A repeat dry-run confirmed that Class 3 has no unused inactive sections left to 
 ## Teachers in the same form
 
 Create and Edit Class now offer an optional Teachers panel with a searchable picker, per-section class teachers and shared or per-section subject teachers. The class-page shortcut opens this panel for class managers; the standalone assignment workflow remains available. See [teacher setup notes](class-teachers.md) for saving behavior, history protection and verification.
+
+## Classes help modal
+
+The reference image's rules banner and lower example/subject notes are consolidated into the Classes help guide. Content describes the actual application behavior: one active class teacher covering a section, separate subject-teacher roles, class edits saved together and previous assignment history retained. The reference's restriction that a teacher can be class teacher of only one section is not enforced by the existing service and is not asserted by this guide. This UI change introduces no assignment-policy or database changes.
+
+The native dialog reuses existing modal styles, with a scrollable body and fixed header/footer on phones. Initial focus moves to its heading, Tab/Shift+Tab stay within the modal and dismissal restores the help trigger. A single instruction block moves from a native details fallback into the modal when JavaScript starts, avoiding duplicated content. Class filters, search, pagination and editing controls remain independent of the guide.
+
+Verification: **73 class/setup/assignment tests / 566 assertions passed**. Production build, Blade compilation, JavaScript syntax and whitespace checks passed. Chromium verified opening/dismissal, keyboard focus, read-only access, unchanged filters/URL, mobile overflow/footer and no-JavaScript expansion at 320, 390, 768 and 1440 pixels. Browser fixtures used a rolled-back testing-database transaction with intercepted read-only requests.
+
+Previews: [desktop guide](previews/class-help-1440.png), [mobile guide](previews/class-help-390.png).
+
+## Classes directory redesign
+
+The Classes directory follows the supplied visual reference with four permission-aware summary cards, compact filters, Sections/Classes tabs, assignment coverage, subject chips, status badges and icon actions. The instructions remain in How it works. Sections is the default view for users with section access; users with only class access see Classes. Inactive sections and sections of inactive classes stay out of the section roster. Inactive classes remain available from the Classes view and status filter. Class and section references use the saved class code; no extra section-code column is created.
+
+Select an academic year to see its active enrollment counts, subject mappings and active assignments for eligible teachers. A whole-class teacher assignment covers each section. Teacher’s subjects lists only the subjects that the section’s class teacher teaches there, including whole-class subject assignments. Total subjects counts the class curriculum. Pending means an active section lacks a class teacher; classes are pending when they have no active sections or any active section lacks one. Active/Assigned filters select completed teacher coverage when a year and assignment access are available. Without a selected/current year, counts show a dash with guidance instead of borrowing another year’s data.
+
+Search covers visible class/section/reference, teacher and subject information under the corresponding permissions. The shared DataTables integration supports an opt-in external search field on this screen, keeping search in the filter toolbar without duplicating it in the table. Paging and length remain server-side; filters, year context, coverage and export URLs synchronize after draws. Other lists retain their existing search controls. Statistics summarize school-wide classes and active sections; student/teacher figures follow the selected year.
+
+Export downloads all matching rows as CSV with the same search, filters, school scope and visible columns. It streams in bounded batches and protects spreadsheet formula cells. Student identities and Aadhaar values are not exported; only permitted enrollment totals are included. Bulk Setup has been removed from the directory. Use Edit Class to update sections, subjects and teachers together; subject/teacher changes use the school’s current year. Assign links for other editable years open the assignment workflow with the selected year retained; closed/archived years have no Assign action. No directory redesign action changes records merely by viewing the screen.
+
+Implementation: `ClassDirectory` supplies school-scoped queries and page data; `SchoolClassIndexRequest` validates filters; `SchoolClassController` delegates listing and CSV export. The directory-row partial and scoped CSS provide the presentation. No migration, permission grant, dependency or live-school data changes are required.
+
+Verification: **93 related tests / 782 assertions passed**, covering class/section views, actual counts, class-wide coverage, teacher subjects, selected/missing years, combined filters, search/pagination bounds, hidden inactive sections, permissions, school scope, CSV completeness/formula protection and year-aware Assign links. Chromium checks passed at 320, 390, 768, 1440 and 1920 pixels for toolbar search, filters, both views, pagination, export synchronization/download, help, retries, no-year/read-only states and the no-JavaScript fallback. Fixtures were rendered in a rolled-back testing transaction; browser requests were intercepted and performed no writes. Production build, Blade compilation, targeted Pint, JavaScript syntax and whitespace checks passed.
+
+Previews: [desktop Classes directory](previews/classes-directory-1440.png), [mobile Classes directory](previews/classes-directory-390.png).

@@ -1,6 +1,15 @@
+import './student-import';
+import './student-enrollment';
+import './student-progression';
+import './guardian-editor';
+import './student-admission';
+import './teacher-photo';
+import './employee-form';
+import './student-list-filters';
 import './subject-class-setup';
 import './list-tables';
 import './class-teacher-setup';
+import './class-help';
 
 const root = document.querySelector('[data-sidebar-root]');
 

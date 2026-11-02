@@ -102,7 +102,7 @@ class SchoolClassTest extends TestCase
         $middleB = $this->schoolClass($admin, ['name' => 'Beta', 'sort_order' => 2]);
         $first = $this->schoolClass($admin, ['name' => 'First', 'sort_order' => 0]);
         $middleA = $this->schoolClass($admin, ['name' => 'Alpha', 'sort_order' => 2]);
-        $this->actingAs($admin)->get($this->base)->assertOk()->assertViewHas('classes', fn ($rows) => $rows->pluck('id')->all() === [$first->id, $middleA->id, $middleB->id, $last->id]);
+        $this->actingAs($admin)->get($this->base.'?view=classes')->assertOk()->assertViewHas('classes', fn ($rows) => $rows->pluck('id')->all() === [$first->id, $middleA->id, $middleB->id, $last->id]);
     }
 
     public function test_search_status_filters_and_pagination_preserve_school_scope(): void
@@ -110,13 +110,13 @@ class SchoolClassTest extends TestCase
         $admin = $this->admin();
         $one = $this->schoolClass($admin, ['name' => 'Nursery', 'code' => 'NUR0']);
         $two = $this->schoolClass($admin, ['name' => 'LKG', 'code' => 'LKG', 'status' => 'INACTIVE']);
-        $this->actingAs($admin)->get($this->base.'?q=0&status=ACTIVE')->assertOk()->assertSee($one->code)->assertDontSee($two->code);
-        $this->get($this->base.'?status=INACTIVE')->assertOk()->assertSee($two->code)->assertDontSee($one->code);
-        $this->get($this->base.'?q=Nursery')->assertOk()->assertSee($one->code)->assertDontSee($two->code);
+        $this->actingAs($admin)->get($this->base.'?view=classes&q=0&status=ACTIVE')->assertOk()->assertSee($one->code)->assertViewHas('classes', fn ($rows) => $rows->pluck('id')->all() === [$one->id]);
+        $this->get($this->base.'?view=classes&status=INACTIVE')->assertOk()->assertSee($two->code)->assertViewHas('classes', fn ($rows) => $rows->pluck('id')->all() === [$two->id]);
+        $this->get($this->base.'?view=classes&q=Nursery')->assertOk()->assertSee($one->code)->assertViewHas('classes', fn ($rows) => $rows->pluck('id')->all() === [$one->id]);
         $this->get($this->base.'?status=INVALID')->assertSessionHasErrors('status');
         app(CurrentSchool::class)->set($admin->school);
         SchoolClass::factory()->count(23)->sequence(fn ($sequence) => ['name' => 'Match '.$sequence->index])->create();
-        $this->get($this->base.'?q=Match')->assertOk()->assertViewHas('classes', fn ($rows) => $rows->count() === 20 && $rows->total() === 23 && str_contains($rows->url(2), 'q=Match'));
+        $this->get($this->base.'?view=classes&q=Match')->assertOk()->assertViewHas('classes', fn ($rows) => $rows->count() === 20 && $rows->total() === 23 && str_contains($rows->url(2), 'q=Match'));
     }
 
     public function test_view_only_class_permission_prevents_mutations(): void

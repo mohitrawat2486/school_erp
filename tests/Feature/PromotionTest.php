@@ -296,11 +296,12 @@ class PromotionTest extends TestCase
         $params = ['mode' => 'PLACEMENT'];
         $this->actingAs($u);
         foreach (['source_academic_year_id', 'source_class_id', 'source_section_id', 'target_academic_year_id', 'target_class_id', 'target_section_id'] as $field) {
-            $this->get('/promotions/create?'.http_build_query($params))->assertOk()->assertSee('Select');
+            $this->get('/promotions/create?'.http_build_query($params))->assertRedirect();
             $params[$field] = $data[$field];
         }
-        $this->get('/promotions/create?'.http_build_query($params))->assertOk()->assertSee('Confirm selected students');
-        $this->get('/promotions/create?source_enrollment_id='.$c['records'][0]->id.'&mode=EXIT')->assertOk()->assertSee('Withdraw or transfer students');
+        $response = $this->get('/promotions/create?'.http_build_query($params))->assertRedirect();
+        $this->assertStringContainsString('progression=1', $response->headers->get('Location'));
+        $this->get('/promotions/create?source_enrollment_id='.$c['records'][0]->id.'&mode=EXIT')->assertRedirect();
         $data['from_selection'] = '1';
         $data['rows'][0]['selected'] = '1';
         $this->post('/promotions', $data)->assertRedirect();

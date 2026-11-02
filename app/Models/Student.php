@@ -17,13 +17,15 @@ class Student extends Model
 
     public const GENDERS = ['MALE' => 'Male', 'FEMALE' => 'Female', 'OTHER' => 'Other', 'PREFER_NOT_TO_SAY' => 'Prefer not to say'];
 
-    protected $fillable = ['admission_number', 'first_name', 'middle_name', 'last_name', 'gender', 'date_of_birth', 'admission_date', 'blood_group', 'address'];
+    protected $fillable = ['admission_number', 'first_name', 'middle_name', 'last_name', 'gender', 'date_of_birth', 'admission_date', 'blood_group', 'address', 'aadhaar_number'];
+
+    protected $hidden = ['aadhaar_number'];
 
     protected $attributes = ['status' => 'ACTIVE'];
 
     protected function casts(): array
     {
-        return ['date_of_birth' => 'date', 'admission_date' => 'date', 'status' => StudentStatus::class];
+        return ['date_of_birth' => 'date', 'admission_date' => 'date', 'status' => StudentStatus::class, 'aadhaar_number' => 'encrypted'];
     }
 
     public function school(): BelongsTo

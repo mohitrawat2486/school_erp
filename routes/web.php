@@ -25,10 +25,14 @@ use App\Http\Controllers\SchoolClassController;
 use App\Http\Controllers\SchoolDetailsController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StudentImportController;
 use App\Http\Controllers\StudentEnrollmentController;
+use App\Http\Controllers\StudentEnrollmentEditorController;
 use App\Http\Controllers\StudentGuardianController;
-use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\StudentGuardianEditorController;
+use App\Http\Controllers\StudentProgressionController;
 use App\Http\Controllers\SubjectClassesController;
+use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherAssignmentController;
 use App\Http\Controllers\TeacherProfileController;
 use App\Models\User;
@@ -156,6 +160,18 @@ Route::middleware('auth')->group(function () {
             Route::post('students/{student}/guardians/{guardian}/unlink', [StudentGuardianController::class, 'unlink'])->name('students.guardians.unlink');
         });
         Route::middleware('can:student.view')->group(function () {
+            Route::middleware('can:student.update')->group(function () {
+                Route::get('students/progression/roster', [StudentProgressionController::class, 'roster'])->name('students.progression.roster');
+                Route::post('students/progression/review', [StudentProgressionController::class, 'review'])->name('students.progression.review');
+                Route::post('students/progression', [StudentProgressionController::class, 'store'])->name('students.progression.store');
+            });
+            Route::get('students/import', [StudentImportController::class, 'index'])->name('students.import.index');
+            Route::post('students/import/validate', [StudentImportController::class, 'validate'])->middleware('throttle:60,1')->name('students.import.validate');
+            Route::post('students/import', [StudentImportController::class, 'store'])->middleware('throttle:60,1')->name('students.import.store');
+            Route::get('students/export', [StudentController::class, 'export'])->name('students.export');
+            Route::get('students/enrollment-options', StudentEnrollmentEditorController::class)->middleware('throttle:120,1')->name('students.enrollment-options');
+            Route::get('students/guardian-editor-options', StudentGuardianEditorController::class)->middleware('throttle:120,1')->name('students.guardian-editor-options');
+            Route::get('students/guardian-options', [StudentController::class, 'guardianOptions'])->middleware('throttle:120,1')->name('students.guardian-options');
             Route::post('students/{student}/activate', [StudentController::class, 'activate'])->name('students.activate');
             Route::post('students/{student}/deactivate', [StudentController::class, 'deactivate'])->name('students.deactivate');
             Route::get('students/{student}/photo', [StudentController::class, 'photo'])->name('students.photo');
@@ -168,23 +184,27 @@ Route::middleware('auth')->group(function () {
             Route::resource('employees', EmployeeController::class)->except('destroy');
         });
         Route::middleware('can:teacher.view')->group(function () {
+            Route::get('teachers/{teacher_profile}/photo', [TeacherProfileController::class, 'photo'])->name('teachers.photo');
             Route::post('teachers/{teacher_profile}/activate', [TeacherProfileController::class, 'activate'])->name('teachers.activate');
             Route::post('teachers/{teacher_profile}/deactivate', [TeacherProfileController::class, 'deactivate'])->name('teachers.deactivate');
             Route::resource('teachers', TeacherProfileController::class)->parameters(['teachers' => 'teacher_profile'])->except('destroy');
         });
         Route::prefix('academics')->middleware('can:class.view')->group(function () {
             Route::get('classes/teacher-options', ClassTeacherPickerController::class)->middleware('throttle:120,1')->name('classes.teacher-options');
+            Route::get('classes/export', [SchoolClassController::class, 'export'])->name('classes.export');
             Route::post('classes/{school_class}/activate', [SchoolClassController::class, 'activate'])->name('classes.activate');
             Route::post('classes/{school_class}/deactivate', [SchoolClassController::class, 'deactivate'])->name('classes.deactivate');
             Route::resource('classes', SchoolClassController::class)->parameters(['classes' => 'school_class'])->except('destroy');
         });
         Route::prefix('academics')->middleware('can:section.view')->group(function () {
+            Route::get('sections/export', [SectionController::class, 'export'])->name('sections.export');
             Route::get('sections/classes', [SectionController::class, 'chooseClass'])->name('sections.choose-class');
             Route::post('sections/{section}/activate', [SectionController::class, 'activate'])->name('sections.activate');
             Route::post('sections/{section}/deactivate', [SectionController::class, 'deactivate'])->name('sections.deactivate');
             Route::resource('sections', SectionController::class)->except('destroy');
         });
         Route::prefix('academics')->middleware('can:subject.view')->group(function () {
+            Route::get('subjects/export', [SubjectController::class, 'export'])->name('subjects.export');
             Route::get('subjects/{subject}/classes', [SubjectClassesController::class, 'edit'])->name('subjects.classes.edit');
             Route::put('subjects/{subject}/classes', [SubjectClassesController::class, 'update'])->name('subjects.classes.update');
             Route::post('subjects/{subject}/activate', [SubjectController::class, 'activate'])->name('subjects.activate');

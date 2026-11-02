@@ -2,7 +2,7 @@
 
 ## Completed
 
-Individual and bulk promotion/repeat workflows, explicit target year/class/section and per-student roll assignments, withdrawal/transfer exits, searchable retained history and batch receipts. Enrollment details link to individual processing and recorded source/origin outcomes. No examination module is implemented in this phase.
+The Students directory provides **Move to next academic year**, a guided bulk Promote/Repeat dialog with student selection, destinations and a server-validated review. The Promotion sidebar entry is removed. Source and destination outcomes appear in student enrollment history. Individual and bulk operations share this workflow; withdrawal/transfer is managed in Edit Student. Searchable history and batch receipts remain available.
 
 Promotion and repeat create NEW enrollments through the existing EnrollmentService; source student/year/class/section/roll/date/status remain intact. Repeat retains the class in a later year; Promote requires a different class. An authorized user explicitly selects the destination; no class-order, grade or pass/fail rules are hard-coded.
 
@@ -20,6 +20,8 @@ Withdrawal and transfer retain the source enrollment with terminal WITHDRAWN/TRA
 - `app/Http/Controllers/PromotionController.php`
 - `resources/views/promotions/index.blade.php`, `select.blade.php`, `form.blade.php`
 - `tests/Feature/PromotionTest.php`
+
+The Students integration adds `StudentProgressionController`, `StudentProgression`, `StudentProgressionRules`, `students/partials/progression-dialog.blade.php`, `student-progression.js` and `StudentProgressionTest`. No additional migration or permission grant is required for bulk progression.
 
 Modified: enrollment status enum, StudentEnrollment source/origin relationships, enrollment policy/service terminal-state checks, enrollment controller/details, status badge, sidebar, routes, README and compiled frontend assets.
 
@@ -43,33 +45,37 @@ Terminal exits cannot be edited, activated or deactivated using ordinary enrollm
 
 ## UI and limits
 
-**Students → Promotion** lists/searches history by student, admission number or decision. Promote/repeat and withdrawal/transfer start separate workflows. Searchable paginated pickers choose the source context and, for placement, target context. Enrollment details offer a single-student shortcut.
+Open **Students → Move to next academic year**. The modal defaults to the current year and the list's selected class/section. Source years can be active or closed. Source choices retain inactive sections only when active historical enrollments still need processing; destinations require active classes and sections. Already processed, inactive and superseded enrollments show their readiness reason and cannot be selected.
 
-The final screen displays context, eligible students, checkboxes, explicit decisions, new roll numbers and notes. Only checked rows are submitted. One joined date and destination section apply to the batch; run separate batches for different destinations/dates. The user must confirm the reviewed selections. Validation errors retain selected row values when returning to the same page.
+Selections persist across roster search and pagination. Select eligible students on a page, or choose individuals; changing source year/class/section clears selection with an explanation. Students default to Promote. Choose the next active academic year, common joining date and default promoted class/section. Individual Repeat decisions retain the source class and require a section in that class. Blank roll numbers allocate automatically; manual values are reserved first so automatic allocation avoids them and previously reserved numbers across all statuses. The same batch supports promoted students and repeaters in different sections. Phones show decision/review cards with destinations and rolls visible; the dialog footer stays within the viewport.
 
-The UI processes up to 20 selected students on the current page. Search/page changes clear unsaved choices, as explained on screen. The service caps a request at 100 rows; larger cohorts should use multiple batches. No queue or new dependency is needed for these bounded operations.
+The roster loads 20 records per request. Select up to 100 across pages per batch; larger cohorts use multiple batches. The review displays exact placements, roll numbers and promoted/repeating/left-for-later counts without writing data. An explicit checkbox enables confirmation. After success, Process remaining students reloads readiness and clears the completed selection. No queue or new dependency is required. Without JavaScript, guidance is shown and no bulk action is submitted.
+
+`StudentProgression` validates eligibility, destination ownership, capacity and dates under the school lock. Review returns an encrypted token bound to the actor and school, expiring after 30 minutes before first use. Confirmation rechecks source revisions, destination metadata and roll/seat reservations against the reviewed snapshot before calling the existing `PromotionService` inside the same transaction. Changed details require a fresh review. Exact retries return the original batch, including after a lost response; changed selections cannot reuse its operation key. Per-row destination sections support mixed Promote/Repeat decisions while preserving legacy canonical hashes when the optional field is absent. Batch header destination fields describe defaults; outcomes retain each student's exact destination.
 
 ## Routes
 
 - `GET /promotions` — retained outcome history and search
-- `GET /promotions/create` — selection and placement form
-- `GET /promotions/create?mode=EXIT` — withdrawal/transfer selection
-- `GET /promotions/create?source_enrollment_id={id}` — individual placement shortcut; add `mode=EXIT` for an individual exit
-- `POST /promotions` — confirmed atomic processing
+- `GET /students/progression/roster` — authorized, school-scoped searchable/paginated readiness
+- `POST /students/progression/review` — validate and preview without writes
+- `POST /students/progression` — confirm the reviewed encrypted token atomically
+- `GET /promotions/create` — redirects to the Students modal, retaining source context
+- `GET /promotions/create?mode=EXIT` — redirects to Students; with a source enrollment, opens Edit Student
+- `POST /promotions` — legacy confirmed processing endpoint retained for compatibility
 - `GET /promotions/{promotion}` — batch receipt with paginated outcomes
 
 ## Manual testing
 
 1. Prepare an ACTIVE or CLOSED source year, source enrollments, and an ACTIVE target year beginning after the source year ends. Activate target classes/sections and ensure available capacity.
-2. Sign in with `student.view` and `student.update`. Open **Students → Promotion → Promote / repeat**. Search/select source year/class/section and target year/class/section.
-3. Check individual students, choose Promote, enter distinct positive roll numbers and target joined date, review the context and check confirmation. Submit and review the batch receipt.
+2. Sign in with `student.view` and `student.update`. Open **Students → Move to next academic year** and choose the source year/class/section.
+3. Select students across search/pages, continue, choose the next year and promoted class/section, and leave roll numbers automatic or enter manual values. Review the exact destinations and roll numbers, check confirmation, then record the moves.
 4. Verify each student has a new target-year enrollment and unchanged source placement. Open either enrollment to follow its origin/outcome link. Retrying the same submission should return the original batch; a new operation cannot reprocess the same source.
-5. For a repeater, select the same class in a later year (a different section is allowed), select Repeat, enter the new roll and confirm.
-6. For an individual, open enrollment details → **Promote / repeat student** or **Withdraw / transfer student**.
-7. For withdrawal/transfer, use an ACTIVE source year, check students, select the appropriate exit decision, supply reasons and confirm. Verify retained source statuses and no new enrollments. Ordinary edit/reactivation should be unavailable.
+5. In the same selection, change an individual decision to Repeat and choose a section in the source class. Verify the review includes both destinations. A repeat-only selection must also work without a promoted destination.
+6. For an individual, select just that student in the bulk workflow. Existing enrollment shortcuts open the same dialog with source context and student preselected.
+7. Record withdrawal/transfer from Edit Student's departure dialogs. Verify retained source statuses and no new enrollments. Ordinary edit/reactivation should be unavailable.
 8. Try a duplicate target roll, full section, inactive target/student, pre-existing later enrollment, invalid joined date or duplicate source. Verify no partial batch is saved.
 9. Verify a view-only user can read history but cannot process; foreign-school IDs must remain inaccessible. Check corresponding audit events using `audit.view`.
-10. Check phone table scrolling, picker/history pagination and validation feedback. Searching/changing the source page should clear unsaved selection.
+10. Check phone decision/review cards, roster/history pagination and validation feedback. Search/page changes must preserve selection; source context changes must clear it. Change destination capacity or reserve a roll after review and verify confirmation requests a fresh review without partial writes.
 
 ## Next recommended phase
 
@@ -84,3 +90,11 @@ Examination Module (plan Phase 14): school/year exam terms and class-specific ex
 - Chromium checked 11 promotion screens at 320, 390, 768, 1440 and 1920 pixels. Checks covered document overflow, active navigation, bounded page selection, required confirmation, correct single/exit modes, server pagination, batch history and absence of nested forms. Preview fixtures were created within a rolled-back testing-database transaction.
 
 Previews: [batch form](previews/promotions-form-desktop.png), [recorded history](previews/promotions-history-desktop.png), [mobile](previews/promotions-mobile.png).
+
+## Students bulk workflow verification
+
+The Students integration passed **131 related tests / 977 assertions** on isolated `school_erp_testing`. This includes mixed Promote/Repeat destinations, exact confirmation retries, stale reviews, revoked permissions, school boundaries, manual-first automatic roll allocation, capacity and duplicate roll checks, full audit rollback, marks preservation, closed-source eligibility, later-enrollment guards, partial batches, history and old entry redirects. The earlier full-suite figures above describe the original module release.
+
+Chromium verified selection retention across search/pages, explicit confirmation, mixed decisions, retry receipts, remaining-student readiness, missing target-year guidance, history and mobile decision/review cards at 320, 390, 768 and 1440 pixels. Browser fixtures were captured inside a rolled-back testing transaction, and all browser POST requests were mocked. Production build, targeted Pint, Blade compilation and whitespace checks passed. This integration adds no migration and does not process live student records.
+
+Previews: [desktop decisions](previews/student-year-end-decisions-1440.png), [mobile decisions](previews/student-year-end-decisions-390.png), [desktop review](previews/student-year-end-review-1440.png), [mobile review](previews/student-year-end-review-390.png).

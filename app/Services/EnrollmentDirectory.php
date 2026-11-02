@@ -7,7 +7,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class EnrollmentDirectory
 {
-    public const RELATIONS = ['student', 'academicYear', 'schoolClass', 'section'];
+    public const RELATIONS = ['student', 'academicYear', 'schoolClass', 'section', 'promotionOutcome.targetEnrollment.academicYear', 'promotionOutcome.targetEnrollment.schoolClass', 'promotionOutcome.targetEnrollment.section', 'promotionOrigin.sourceEnrollment.academicYear', 'promotionOrigin.sourceEnrollment.schoolClass', 'promotionOrigin.sourceEnrollment.section'];
 
     public function search(array $filters): LengthAwarePaginator
     {

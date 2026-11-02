@@ -122,6 +122,8 @@ Records have school-unique employee numbers, employee types, personal/contact/em
 and explicit activation/deactivation. Viewing requires `employee.view`; creating also needs `employee.create`;
 editing and changing status also need `employee.update`. All mutations are audited.
 Employee creation does not create a login or teacher profile. Inactive records remain available for history.
+Add/Edit Employee uses full-width responsive cards for personal, employment and contact details, with optional photo upload and an immediate preview. Required fields are marked, errors appear beside their controls, and submitted text is retained after validation errors. On phones, the cards and actions stack into a single column.
+**Aadhaar number** is mandatory in personal details and accepts 12 digits without spaces. It is stored encrypted, masked to the last four digits on the employee profile, and redacted from audit values. Authorized editors can update it; creating or saving an employee requires a valid number.
 The employees-table migration is applied. Photos use private storage; no `storage:link` is needed.
 See [development/step-6.md](development/step-6.md) for files, schema, routes, manual checks and assumptions.
 
@@ -141,13 +143,15 @@ Open **Academics → Classes** (`/academics/classes`) to create, view, edit, sea
 Names/codes are unique per school, and numeric display order controls the listing. Inactive records are retained.
 Viewing requires `class.view`; creating/editing/activation also requires `class.manage`.
 The classes-table migration is applied. Sections reference persistent class records; academic-year allocations remain separate.
+Choose **How it works** on Classes for a short modal guide covering sections, class/subject teachers, replacement assignments and an example. The guide is available as an expandable section without JavaScript.
+The Classes directory includes summary cards, Sections/Classes tabs, year/class/subject/status filters, teacher names and subject badges, and View/Edit/Assign actions. Export downloads the filtered list as CSV. Use Edit class to manage sections, subjects and teachers. Counts and assignment details respect school scope and permissions; inactive sections stay hidden. See [class setup and directory notes](development/class-setup.md).
 All changes are transactionally audited. See [development/step-8.md](development/step-8.md) for files,
 schema, routes, manual checks and assumptions.
 
 ## Step 9: Sections
 
 Open **Academics → Sections** (`/academics/sections`) to create sections within active classes.
-Section names are unique per class; optional capacity, search, class/status filters and activation controls are supported.
+Section names are unique per class; optional capacity and activation controls are supported. The directory matches Classes with overview cards, class teacher details, year/class/status filters, search, CSV export and icon actions. Instructions open in **How it works**. Inactive sections remain available in this directory.
 Viewing requires `section.view`; creating/editing/activation also requires `section.manage`.
 The linked class stays fixed after creation. Deactivating a class deactivates its active sections transactionally;
 reactivating the class leaves section reactivation explicit. The sections migration is applied.
@@ -190,27 +194,33 @@ See [UI verification and previews](development/ui-lists.md).
 
 ## Step 12: Students
 
-Open **Students → Student List** (`/students`) or **Admission** (`/students/create`) to manage student master records.
+Open **Students** (`/students`) to manage student master records. The directory uses the Classes/Sections design with school-wide summary cards, class and section filters, current placement columns, View/Edit icons, a help modal and filtered CSV export. Use **Add student** to create an admission (`/students/create`).
+
+Both **Add Student** and **Edit Student** include an inline **Guardians** panel for up to **3 linked contacts**. Use **Add guardian** to enter a new contact or search for an existing sibling contact. Cards show name, phone, relationship and contact preferences; **Done** collapses a completed card. Exactly one retained guardian is primary when contacts are present, with independent emergency preferences. Shared contact details change only after choosing **Edit contact details**. Removing a card offers **Undo**; saved links also require confirmation before the main student save and retain their history. Student, guardian, relationship, photo and audit changes save together, with validation recovery and stale-edit protection. New guardians can copy the student's address. Existing records above the limit are preserved while further additions are blocked. Guardian changes require `student.update`; creating a student additionally requires `student.create`. The profile's **Edit guardians** action opens the same Edit Student form.
+
+Use the **Class** dropdown on Students to show students with active enrollments in that class for the current academic year. Choose a **Section** to narrow the list further; only active sections from the selected class appear. Changing class clears the previous section, and **All sections** shows the entire class. Both filters work with student status, search and pagination. **All classes** includes students without enrollments; **Reset** clears the filters. When no current academic year is set, selecting a class returns no students and shows guidance instead of using historical enrollments.
 The full-width directory supports name/admission-number search, status filters and pagination. Create, edit, private photos and activation/deactivation are permission-controlled and audited. Admission numbers are unique per school; records are retained.
-Academic placement remains in the later enrollment phase.
+The student profile shows photo/initials, admission details and current class/section in a summary header, with personal details and guardian contacts in separate responsive cards. Guardians use a simple contact list with phone/email links and primary/emergency labels; additional details and previous links expand inline. Enrollment history retains its searchable table.
+Add/Edit Student → **Student details** includes a mandatory **Aadhaar number** for identification. Enter 12 digits without spaces; stored values are encrypted, masked on the student profile and redacted from audits. Creating or saving a student requires a valid number.
+The **Enrollment** summary in Add/Edit Student has **Manage enrollment**, **Withdraw** and **Transfer** actions. Manage enrollment opens a dialog to choose an academic year, class and section, see available seats, and assign a roll number automatically or manually. Apply stages the changes; the main student Save commits student, guardian and enrollment changes together. Cancel or Escape restores the previous draft. Year switching preserves drafts without leaving the form. Unused placements can be corrected explicitly; placements referenced by marks, results or promotion history retain their class/section. Withdraw/Transfer dialogs require a departure date, reason and confirmation, with an optional destination school for transfers. Only an eligible latest active enrollment can depart; closed years and recorded departures remain read-only. Departure history retains dates, reasons and destination schools. The profile's **Enroll student** action opens Manage enrollment directly.
 See [development/step-12.md](development/step-12.md) for files, database changes, routes, assumptions, tests and manual checks.
 
 ## Step 13: Guardians
 
-Open **Students → Guardians** (`/guardians`) to manage shared family contacts. Open a student's details → **Manage guardian contacts** to link existing guardians, set Father/Mother/Guardian relationships, designate primary/emergency contacts or unlink while retaining history.
+Manage guardians in **Add/Edit Student → Guardians**, or open a student's profile → **Edit guardians**. Add up to three contacts, reuse an existing sibling contact, set Father/Mother/Guardian relationships and primary/emergency preferences, or unlink while retaining history. Student profiles show current and previous contacts as simple lists. The separate Guardians sidebar entry is removed; existing guardian URLs remain available for compatibility and use Students as the active navigation entry.
 Reading requires `student.view`; managing contacts additionally requires `student.update`. At most one active primary contact is permitted per student. Replace or unlink primary relationships before deactivating a guardian. Editing a shared guardian updates the contact for all linked students.
 See [development/step-13.md](development/step-13.md) for files, database constraints, routes, assumptions, tests and manual checks.
 
 ## Step 14: Student Enrollment
 
-Open **Students → Enrollment** (`/enrollments`) or a student's details → **Enroll student**. Search/select the active student, academic year, class and section, then enter roll number and joined date. Enrollment history appears on the student's details page.
+Use **Add/Edit Student → Manage enrollment** for routine class assignment and changes. The profile's **Enroll student** action opens the dialog directly. Enrollment has been removed from the sidebar; existing `/enrollments` URLs remain functional. Editable enrollment history links open the student's form with the corresponding academic year selected. Enrollment history appears on the student's details page.
 Reading requires `student.view`; changes additionally require `student.update` and an active academic year. One enrollment per student/year and unique roll numbers per year/class/section are enforced. Section capacity and joined dates are checked. Context is fixed after creation; roll/date corrections and status changes are audited. History is retained.
 See [development/step-14.md](development/step-14.md) for files, constraints, routes, assumptions and manual testing.
 
 ## Step 15: Student Promotion
 
-Open **Students → Promotion** (`/promotions`) to promote/repeat selected students into a later active year or record withdrawal/transfer from an active source year. Enrollment details provide individual shortcuts. Choose source/target sections, enter new roll numbers, review the selected students and confirm.
-Promote/Repeat creates new enrollments without overwriting the source placement. Withdrawal/Transfer retains terminal source history. Batches are atomic, audited and protected against duplicate submissions. Reading requires `student.view`; processing additionally requires `student.update`.
+Open **Students → Move to next academic year** for a guided bulk Promote/Repeat dialog. Choose the source year/class/section, select students across search and pagination, then choose the next active year and promoted destination. Individual repeaters stay in their source class with a chosen section. Blank roll numbers allocate automatically; manual numbers remain supported. Review exact placements, roll numbers and counts before confirming. Unselected students can be processed later, up to 100 students per batch.
+The Promotion sidebar entry is removed. Source and destination outcomes appear in each student's enrollment history; existing history URLs remain readable, and old creation links open the Students workflow. Withdrawal/Transfer is managed in Edit Student. Promote/Repeat creates new enrollments without overwriting source placement, marks or results. Batches are atomic, audited and protected against duplicate submissions. Reviewed source/destination changes require a fresh review. Reading requires `student.view`; processing additionally requires `student.update`.
 See [development/step-15.md](development/step-15.md) for files, database changes, routes, assumptions and manual checks.
 
 ## Step 16: Examination Module
@@ -337,10 +347,19 @@ See [list table notes](development/list-tables.md) for coverage and implementati
 
 Open **Employees → Teachers** to manage profiles and assignments from one workspace. Each teacher has **View profile** and **Assignments** actions, plus an active assignment count for the current academic year. **All assignments** provides the school-wide view. Adding an assignment from a teacher preselects them; filters and back links preserve the chosen teacher and directory context. Existing assignment-only access and historical records are retained.
 
+Create or edit a teacher profile to upload an optional photo with an immediate preview. JPEG, PNG and WebP images up to 2 MB and 2000 × 2000 pixels are accepted. The photo is shared with the linked employee record and appears in the teacher directory and profile. Leaving the upload empty keeps the current photo. Photos are stored privately and require permission to view the teacher.
+
 List actions across the app now use consistent labelled icons. See [teacher workspace notes](development/teacher-workspace.md) for behavior, permissions and previews.
 
 ## Subjects workspace
 
+Subjects follows the Classes/Sections directory design with summary cards, type/status filters, compact rows, View/Edit/Classes actions, a help modal and filtered CSV export. The existing By class workspace remains available.
+
 Open **Academics → Subjects** to manage the subject list and class use together. **Classes → Manage classes** provides one searchable checklist for the selected subject and academic year. Changes save together; unused removals require confirmation, used links stay protected, and restored links retain their marks settings. **By class** provides an overview and class-specific **Marks settings** actions. Existing class creation and historical records remain supported.
 
 See [subject workspace notes](development/subject-workspace.md) for behavior, permissions and previews.
+
+
+## Student import
+
+Open **Students → Import students** to paste Excel/Google Sheets rows, map columns, correct cells and review server validation before confirming. The preview supports status filters, warning consent and 25-row pagination. Student details, optional class placement and up to three guardian contacts save through the existing services in retry-safe batches. A dedicated `student.import` permission is required alongside Student creation access; guardian/enrollment import also uses the existing update permission. The permission migration is applied. No Student schema or import-history tables were added. See [student import notes](development/student-import.md) for fields, endpoints, rules, tests and limits.

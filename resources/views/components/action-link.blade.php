@@ -1,2 +1,2 @@
-@props(['href', 'label'=>'View', 'icon'=>'eye', 'primary'=>false])
-<a href="{{ $href }}" {{ $attributes->class(['table-action action-link', 'action-link--primary'=>$primary])->merge(['title'=>$label]) }}><x-icon :name="$icon" /><span>{{ $label }}</span></a>
+@props(['href', 'label'=>'View', 'icon'=>'eye', 'primary'=>false, 'iconOnly'=>false])
+<a href="{{ $href }}" {{ $attributes->class(['table-action action-link', 'action-link--primary'=>$primary, 'action-link--icon-only'=>$iconOnly])->merge(['title'=>$iconOnly ? $attributes->get('aria-label', $label) : $label]) }}><x-icon :name="$icon" /><span @if($iconOnly) class="sr-only" @endif>{{ $label }}</span></a>

@@ -6,7 +6,7 @@
 @if($enrollment->promotionOutcome)<p class="mt-3"><a href="{{ route('promotions.show',$enrollment->promotionOutcome->batch) }}" class="text-[#8b2f24] underline">View recorded {{ strtolower($enrollment->promotionOutcome->action->value) }} outcome</a></p>
 @else
 @can('create',\App\Models\PromotionBatch::class)
-@if($enrollment->status->value==='ACTIVE' && in_array($enrollment->academicYear->status->value,['ACTIVE','CLOSED']))<div class="mt-3 flex flex-wrap gap-4"><a href="{{ route('promotions.create',['source_enrollment_id'=>$enrollment->id]) }}" class="font-semibold text-[#8b2f24] underline">Promote / repeat student</a>@if($enrollment->academicYear->status->value==='ACTIVE')<a href="{{ route('promotions.create',['source_enrollment_id'=>$enrollment->id,'mode'=>'EXIT']) }}" class="font-semibold text-[#8b2f24] underline">Withdraw / transfer student</a>@endif</div>@endif
+@if($enrollment->status->value==='ACTIVE' && in_array($enrollment->academicYear->status->value,['ACTIVE','CLOSED']))<div class="mt-3 flex flex-wrap gap-4"><x-action-link :href="route('students.index', ['progression'=>1, 'progression_year'=>$enrollment->academic_year_id, 'progression_class'=>$enrollment->class_id, 'progression_section'=>$enrollment->section_id, 'progression_student'=>$enrollment->id, 'progression_search'=>$enrollment->student->admission_number])" label="Move to next academic year" icon="assignment" />@if($enrollment->academicYear->status->value==='ACTIVE')<x-action-link :href="route('students.edit', ['student'=>$enrollment->student_id, 'enrollment_year'=>$enrollment->academic_year_id]).'#enrollment-heading'" label="Withdraw / transfer student" icon="pencil" />@endif</div>@endif
 @endcan
 @endif</section>
 </x-app-layout>

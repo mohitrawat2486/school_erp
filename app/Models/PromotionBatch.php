@@ -13,7 +13,7 @@ class PromotionBatch extends Model
 
     protected $guarded = ['id', 'school_id'];
 
-    protected $hidden = ['operation_key', 'request_hash'];
+    protected $hidden = ['operation_key', 'request_hash', 'student_form_hash'];
 
     protected function casts(): array
     {

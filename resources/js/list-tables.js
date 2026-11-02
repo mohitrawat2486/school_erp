@@ -23,6 +23,7 @@ document.querySelectorAll('[data-list-table]').forEach((panel) => {
     const filterForm = getForms.findLast((form) => form.matches('.list-toolbar, [data-list-filters]')
         || form.querySelector('input[name="q"], input[name="search"], select[name], input[type="date"]'));
     const legacySearch = filterForm?.querySelector('input[name="q"], input[name="search"]');
+    const externalSearch = panel.hasAttribute('data-external-search');
     const searchName = legacySearch?.name;
     const initialSearch = config.search || legacySearch?.value || '';
     const error = document.createElement('div');
@@ -77,7 +78,7 @@ document.querySelectorAll('[data-list-table]').forEach((panel) => {
         pageLength: config.length, lengthMenu: [10, 20, 25, 50, 100],
         displayStart: (config.page - 1) * config.length,
         search: {search: initialSearch}, searchDelay: 400,
-        layout: {topStart: 'pageLength', topEnd: 'search', bottomStart: 'info', bottomEnd: {paging: {buttons: 5}}},
+        layout: {topStart: 'pageLength', topEnd: externalSearch ? null : 'search', bottomStart: 'info', bottomEnd: {paging: {buttons: 5}}},
         language: {
             search: 'Search', searchPlaceholder: 'Search records…', lengthMenu: 'Show _MENU_ per page',
             info: 'Showing _START_–_END_ of _TOTAL_ records', infoEmpty: 'No records to display', infoFiltered: '',
@@ -143,13 +144,21 @@ document.querySelectorAll('[data-list-table]').forEach((panel) => {
         },
     });
     if (filterForm) {
+        const reload = () => {
+            if (externalSearch && legacySearch) api.search(legacySearch.value);
+            api.ajax.reload();
+        };
         filterForm.addEventListener('change', () => {
-            if (filterForm.checkValidity()) api.ajax.reload();
+            if (filterForm.checkValidity()) reload();
         });
         filterForm.addEventListener('submit', (event) => {
             event.preventDefault();
-            api.ajax.reload();
+            reload();
         });
+        if (externalSearch && legacySearch) {
+            let timer;
+            legacySearch.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(reload, 400); });
+        }
     }
     retry.addEventListener('click', () => api.ajax.reload());
     const container = api.table().container();
@@ -163,7 +172,7 @@ document.querySelectorAll('[data-list-table]').forEach((panel) => {
     panel.classList.add('is-enhanced');
     panel.querySelector('[data-table-fallback]').hidden = true;
     panel.querySelector('.data-panel-hint').hidden = true;
-    if (legacySearch) {
+    if (legacySearch && !externalSearch) {
         legacySearch.disabled = true;
         const wrapper = legacySearch.closest('label') || legacySearch.parentElement;
         wrapper.hidden = true;

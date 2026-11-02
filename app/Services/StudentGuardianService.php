@@ -37,6 +37,9 @@ class StudentGuardianService
                 throw ValidationException::withMessages(['guardian' => 'Activate this guardian before linking or changing a contact.']);
             }
             $link = StudentGuardian::where('student_id', $student->id)->where('guardian_id', $guardian->id)->lockForUpdate()->first();
+            if ((! $link || $link->status !== GuardianStatus::Active) && StudentGuardian::where('student_id', $student->id)->where('status', 'ACTIVE')->count() >= 3) {
+                throw ValidationException::withMessages(['guardian' => 'A student can have up to 3 linked guardians. Remove a contact before adding another.']);
+            }
             if ($data['is_primary']) {
                 $others = StudentGuardian::where('student_id', $student->id)->where('guardian_id', '!=', $guardian->id)->where('is_primary', true)->lockForUpdate()->get();
                 foreach ($others as $other) {
@@ -81,6 +84,6 @@ class StudentGuardianService
 
     private function audit(User $actor, StudentGuardian $link, array $before, string $action): void
     {
-        app(AuditLogger::class)->record($actor,$action,'student_guardian',$link->id,$before,$link->only(self::FIELDS),'guardians');
+        app(AuditLogger::class)->record($actor, $action, 'student_guardian', $link->id, $before, $link->only(self::FIELDS), 'guardians');
     }
 }

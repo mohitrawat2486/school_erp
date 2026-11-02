@@ -13,13 +13,13 @@ final class PromotionRules
 
     public static function rules(): array
     {
-        $rules = ['operation_key' => ['required', 'uuid'], 'confirmed' => ['accepted'], 'mode' => ['required', Rule::in(['PLACEMENT', 'EXIT'])], 'joined_at' => ['required_if:mode,PLACEMENT', 'prohibited_if:mode,EXIT', 'nullable', 'date_format:Y-m-d'], 'rows' => ['required', 'array', 'min:1', 'max:100'], 'rows.*' => ['required', 'array:source_enrollment_id,action,roll_number,notes'], 'rows.*.source_enrollment_id' => ['required', 'integer', 'min:1', 'distinct'], 'rows.*.action' => ['required', Rule::enum(PromotionAction::class)], 'rows.*.roll_number' => ['nullable', 'integer', 'between:1,4294967295'], 'rows.*.notes' => ['nullable', 'string', 'max:500'], 'school_id' => ['prohibited'], 'actor_id' => ['prohibited'], 'status' => ['prohibited']];
+        $rules = ['operation_key' => ['required', 'uuid'], 'confirmed' => ['accepted'], 'mode' => ['required', Rule::in(['PLACEMENT', 'EXIT'])], 'joined_at' => ['required_if:mode,PLACEMENT', 'prohibited_if:mode,EXIT', 'nullable', 'date_format:Y-m-d'], 'rows' => ['required', 'array', 'min:1', 'max:100'], 'rows.*' => ['required', 'array:source_enrollment_id,action,roll_number,notes,departure_date,destination_school,target_section_id'], 'rows.*.source_enrollment_id' => ['required', 'integer', 'min:1', 'distinct'], 'rows.*.action' => ['required', Rule::enum(PromotionAction::class)], 'rows.*.roll_number' => ['nullable', 'integer', 'between:1,4294967295'], 'rows.*.notes' => ['nullable', 'string', 'max:500'], 'rows.*.departure_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'], 'rows.*.destination_school' => ['nullable', 'string', 'max:255'], 'rows.*.target_section_id' => ['nullable', 'integer', 'min:1'], 'school_id' => ['prohibited'], 'actor_id' => ['prohibited'], 'status' => ['prohibited']];
         foreach (self::SOURCE as $field) {
             $rules[$field] = ['required', 'integer', 'min:1'];
         }foreach (self::TARGET as $field) {
             $rules[$field] = ['required_if:mode,PLACEMENT', 'prohibited_if:mode,EXIT', 'nullable', 'integer', 'min:1'];
         }
 
-return $rules;
+        return $rules;
     }
 }

@@ -11,6 +11,7 @@ use App\Models\Section;
 use App\Models\Subject;
 use App\Models\TeacherAssignment;
 use App\Models\TeacherProfile;
+use App\Services\ClassDirectory;
 use App\Services\CreateClassWithSetup;
 use App\Services\SchoolClassService;
 use App\Services\UpdateClassWithSetup;
@@ -21,26 +22,34 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SchoolClassController extends Controller
 {
-    public function index(SchoolClassIndexRequest $request): View
+    public function index(SchoolClassIndexRequest $request, ClassDirectory $directory): View
     {
-        $filters = $request->validated();
-        $query = SchoolClass::query();
-        if (($q = $filters['q'] ?? null) !== null && $q !== '') {
-            $pattern = '%'.$q.'%';
-            $query->where(fn ($search) => $search->where('name', 'like', $pattern)->orWhere('code', 'like', $pattern));
-        }
-        if ($status = $filters['status'] ?? null) {
-            $query->where('status', $status);
-        }
+        return view('classes.index', $directory->data($request->user(), $request->validated()));
+    }
 
-        if ($request->user()->can('section.view')) {
-            $query->with(['sections' => fn ($q) => $q->where('status', 'ACTIVE')->orderBy('name')]);
-        }
+    public function export(SchoolClassIndexRequest $request, ClassDirectory $directory): StreamedResponse
+    {
+        [$headers, $query, $context] = $directory->export($request->user(), $request->validated());
+        $school = app(CurrentSchool::class)->get();
 
-        return view('classes.index', ['classes' => $query->orderBy('sort_order')->orderBy('name')->orderBy('id')->paginateTable(20)->withQueryString(), 'filters' => $filters]);
+        return response()->streamDownload(function () use ($directory, $headers, $query, $context, $school) {
+            app(CurrentSchool::class)->set($school);
+            $stream = fopen('php://output', 'w');
+            try {
+                fwrite($stream, "\xEF\xBB\xBF");
+                fputcsv($stream, $headers, ',', '"', '');
+                foreach ($query->lazy(200) as $record) {
+                    fputcsv($stream, $directory->csvRow($record, $context), ',', '"', '');
+                }
+            } finally {
+                fclose($stream);
+                app(CurrentSchool::class)->clear();
+            }
+        }, 'classes-'.$context['mode'].'.csv', ['Content-Type' => 'text/csv; charset=UTF-8', 'Cache-Control' => 'private, no-store']);
     }
 
     public function create(): View

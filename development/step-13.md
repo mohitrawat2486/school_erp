@@ -2,7 +2,7 @@
 
 ## Completed
 
-Reusable guardian contacts, student–guardian relationships, full-width directory and search, contact editing, activation/deactivation, primary and emergency flags, sibling sharing and retained unlink history. The existing student page now displays guardian contacts and links to their management screen. No enrollment functionality is implemented.
+Reusable guardian contacts, student–guardian relationships, contact editing, primary and emergency flags, sibling sharing and retained unlink history. Routine guardian management lives in Add/Edit Student, with up to three contacts and existing-contact search. Student profiles display current and previous guardian contacts in simple lists and link directly to Edit Student. The separate Guardians sidebar entry is removed; legacy guardian routes remain functional and highlight Students in navigation.
 
 ## Files created
 
@@ -32,7 +32,7 @@ Both tables use school scoping. Student has many guardian links; Guardian has ma
 - `GET /guardians`, `/guardians/create`, `POST /guardians`
 - `GET /guardians/{guardian}`, `/guardians/{guardian}/edit`, `PUT /guardians/{guardian}`
 - `POST /guardians/{guardian}/activate`, `/deactivate`
-- `GET /students/{student}/guardians` — searchable selection and contact settings
+- `GET /students/{student}/guardians` — legacy searchable selection and contact settings
 - `PUT /students/{student}/guardians/{guardian}` — link, edit or relink
 - `POST /students/{student}/guardians/{guardian}/unlink` — retain historical link
 
@@ -48,15 +48,15 @@ Phone is required; last name and other contact fields are optional. Phone and em
 
 ## Manual testing
 
-1. Sign in with `student.view` and `student.update`. Open **Students → Guardians → Add guardian**. Enter name, phone and optional contact fields; save and edit.
-2. Open **Students → Student List**, view a student, then **Manage guardian contacts**. Search the existing guardian by name/phone/email.
-3. Select Father/Mother/Guardian and primary/emergency settings, then **Link guardian**. Return to student details and verify the contact.
+1. Sign in with `student.view` and `student.update`. Open **Students → Add student** or edit an existing student. In Guardians, choose **Add guardian**, enter name/phone and optional details, then save the student.
+2. View a student and choose **Edit guardians**. Add another card, choose an existing contact and search by name or phone without leaving the form.
+3. Select Father/Mother/Guardian and primary/emergency settings. Save the student and verify the contact on the profile.
 4. Link a second guardian and make them primary. Verify the former primary becomes an additional contact. Check audit logs with `audit.view`.
 5. Link the same guardian to a sibling with different relationship/emergency settings. Edit the shared phone and verify both students show the update.
-6. Expand **Unlink guardian**, confirm, and verify history remains. Relink and verify the original link is reused.
+6. Remove a guardian card, check the removal confirmation and save; verify history remains. Use Undo before saving to restore the card. Reuse the existing contact to relink.
 7. Try deactivating a guardian who is still primary for either sibling. Verify the validation message; replace or unlink primary contacts and retry. Verify inactive guardians cannot be linked until activated.
 8. Verify a view-only user can read contacts but cannot create/edit/link/unlink/change status. Verify foreign-school IDs cannot be accessed.
-9. Check directory pagination with more than 20 records and phone-size horizontal table scrolling.
+9. Confirm the sidebar has Students without a separate Guardians entry. Check Add/Edit Student and profile contacts on mobile; legacy guardian URLs should remain accessible with Students highlighted.
 
 ## Next recommended phase
 
@@ -69,3 +69,5 @@ All 196 tests / 1,369 assertions passed on the isolated `school_erp_testing` dat
 Production Vite build, Blade compilation, Pint and changed-code whitespace checks passed. Chromium checked six screens (directory, create, show, edit, student detail and contact manager) at 320, 390, 768, 1440 and 1920 pixels. Checks covered document overflow, active navigation, persisted relationship/primary/emergency settings, mutation URLs and pagination. Preview fixtures were created in a rolled-back testing-database transaction.
 
 Previews: [directory](previews/guardians-desktop.png), [contact manager](previews/guardians-contacts-desktop.png), [mobile contact manager](previews/guardians-contacts-mobile.png).
+
+Navigation simplification verification: **45 related tests / 419 assertions passed** on `school_erp_testing`, covering guardian management, inline contact editing, sibling reuse, primary/emergency preferences, retained history, permissions and student profile contacts. Blade compilation and whitespace checks passed. This change removes the sidebar entry and highlights Students on legacy guardian pages; existing records, relationships and endpoints are retained. No migration or frontend asset rebuild is required.

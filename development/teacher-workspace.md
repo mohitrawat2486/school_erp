@@ -18,6 +18,18 @@ The profile page also has prominent icon actions for editing and assignments. Ba
 
 No migration, new package, permission grant or live-school data change is required.
 
+## Teacher photos
+
+Teacher create/edit forms accept an optional JPEG, PNG or WebP photo using the existing raster validation (2 MB, maximum 2000 × 2000 pixels). The browser previews a selected image before saving; the form also works without JavaScript. Teacher list/profile avatars show the saved photo or initials when no photo is recorded.
+
+The photo uses the linked employee's existing `photo_path`, avoiding duplicate identities and conflicting photos. Teacher managers can change only that employee photo through the teacher form without receiving access to other employee fields. A dedicated `teachers.photo` endpoint checks teacher-view permission and school scope, serves private/no-store responses, and returns 404 for missing photos. Employee photo permissions remain unchanged.
+
+Photo and profile changes, including audit records, commit in one transaction. Failure deletes the newly uploaded file and rolls back both records. Existing photos remain available for history, matching employee upload behavior. Empty uploads retain the existing photo, and direct storage-path input is prohibited.
+
+Photo verification: **47 related tests / 387 assertions passed**, covering teacher and employee regressions, shared photos, photo-only changes, format/size/dimension validation, permissions, school isolation and audit rollback. Browser checks passed at 320, 390, 768 and 1440 pixels, including previews, clearing the selection, multipart form data and page overflow, with zero JavaScript errors. Production assets and Blade templates compile successfully. Browser fixtures were rolled back in the isolated testing database.
+
+Previews: [photo upload on desktop](previews/teacher-photo-edit-1440.png), [photo upload on a phone](previews/teacher-photo-edit-390.png), [teacher profile on a phone](previews/teacher-photo-profile-390.png).
+
 ## Verification
 
 `TeacherWorkspaceTest` covers current-year counts, direct and scoped links, preselected creation across every step, creation/status navigation context, teacher and year retention, profile editing, missing current year, closed/inactive history, profile-only and assignment-only permissions, foreign-school denial and invalid navigation input.

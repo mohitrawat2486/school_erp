@@ -300,7 +300,7 @@ class EnrollmentTest extends TestCase
         $data = $this->context($admin);
         $this->create($admin, $data);
         $student = Student::findOrFail($data['student_id']);
-        $this->actingAs($admin)->put('/students/'.$student->id, ['admission_number' => $student->admission_number, 'first_name' => $student->first_name, 'admission_date' => '2026-04-02'])->assertSessionHasErrors('admission_date');
+        $this->actingAs($admin)->put('/students/'.$student->id, ['admission_number' => $student->admission_number, 'first_name' => $student->first_name, 'admission_date' => '2026-04-02', 'aadhaar_number' => '234567890123'])->assertSessionHasErrors('admission_date');
         app(CurrentSchool::class)->set($admin->school);
         $other = Student::factory()->create();
         $this->create($admin, [...$data, 'student_id' => $other->id, 'roll_number' => 2]);

@@ -46,7 +46,26 @@ class PromotionService
             if (! $placing && trim($row['notes'] ?? '') === '') {
                 throw ValidationException::withMessages(["rows.$index.notes" => 'Enter a reason for withdrawal or transfer.']);
             }
-            $rows[] = ['source_enrollment_id' => (int) $row['source_enrollment_id'], 'action' => $action, 'roll_number' => $placing ? (int) $row['roll_number'] : null, 'notes' => trim($row['notes'] ?? '') ?: null];
+            $normalized = ['source_enrollment_id' => (int) $row['source_enrollment_id'], 'action' => $action, 'roll_number' => $placing ? (int) $row['roll_number'] : null, 'notes' => trim($row['notes'] ?? '') ?: null];
+            if (isset($row['target_section_id'])) {
+                if (! $placing) {
+                    throw ValidationException::withMessages(["rows.$index.target_section_id" => 'A destination section applies only to promotion or repeat.']);
+                }
+                $normalized['target_section_id'] = (int) $row['target_section_id'];
+            }
+            if (! empty($row['departure_date'])) {
+                if ($placing) {
+                    throw ValidationException::withMessages(["rows.$index.departure_date" => 'Departure dates apply only to withdrawal or transfer.']);
+                }
+                $normalized['departure_date'] = $row['departure_date'];
+            }
+            if (trim($row['destination_school'] ?? '') !== '') {
+                if ($action !== 'TRANSFER') {
+                    throw ValidationException::withMessages(["rows.$index.destination_school" => 'Destination school applies only to transfer.']);
+                }
+                $normalized['destination_school'] = trim($row['destination_school']);
+            }
+            $rows[] = $normalized;
         }
         usort($rows, fn ($a, $b) => $a['source_enrollment_id'] <=> $b['source_enrollment_id']);
         $canonical['rows'] = $rows;
@@ -63,7 +82,7 @@ class PromotionService
                     throw ValidationException::withMessages(['operation_key' => 'This confirmation has already been used for different selections. Start a new operation.']);
                 }
 
-return $existing;
+                return $existing;
             }
             $year = AcademicYear::whereKey($data['source_academic_year_id'])->lockForUpdate()->firstOrFail();
             if (! in_array($year->status, [AcademicYearStatus::Active, AcademicYearStatus::Closed], true)) {
@@ -96,12 +115,15 @@ return $existing;
                 }
                 $new = null;
                 if (in_array($row['action'], ['PROMOTE', 'REPEAT'], true)) {
-                    $same = (int) $source->class_id === (int) $data['target_class_id'];
+                    $destination = isset($row['target_section_id']) ? Section::eligible()->whereKey($row['target_section_id'])->lockForUpdate()->firstOrFail() : null;
+                    $destinationClass = $destination?->class_id ?? $data['target_class_id'];
+                    $destinationSection = $destination?->id ?? $data['target_section_id'];
+                    $same = (int) $source->class_id === (int) $destinationClass;
                     if (($row['action'] === 'REPEAT') !== $same) {
                         throw ValidationException::withMessages(["rows.$index.action" => 'Repeat must retain the class; promote must choose a different class.']);
                     }
                     try {
-                        $new = app(EnrollmentService::class)->save($actor, null, ['student_id' => $source->student_id, 'academic_year_id' => $data['target_academic_year_id'], 'class_id' => $data['target_class_id'], 'section_id' => $data['target_section_id'], 'roll_number' => $row['roll_number'], 'joined_at' => $data['joined_at']]);
+                        $new = app(EnrollmentService::class)->save($actor, null, ['student_id' => $source->student_id, 'academic_year_id' => $data['target_academic_year_id'], 'class_id' => $destinationClass, 'section_id' => $destinationSection, 'roll_number' => $row['roll_number'], 'joined_at' => $data['joined_at']]);
                     } catch (ValidationException $e) {
                         $messages = [];
                         foreach ($e->errors() as $key => $messagesForField) {
@@ -113,15 +135,18 @@ return $existing;
                         throw ValidationException::withMessages(["rows.$index.action" => 'Withdrawal and transfer require an active source year. Closed-year records are read-only.']);
                     }
 
+                    if (! empty($row['departure_date'])) {
+                        Validator::make($row, ['departure_date' => ['date_format:Y-m-d', 'after_or_equal:'.$source->joined_at->format('Y-m-d'), 'before_or_equal:'.$year->end_date->format('Y-m-d'), 'before_or_equal:today']])->validate();
+                    }
                     $before = $source->only(StudentEnrollment::AUDIT_FIELDS);
                     $source->status = $row['action'] === 'WITHDRAW' ? EnrollmentStatus::Withdrawn : EnrollmentStatus::Transferred;
                     $source->save();
                     app(AuditLogger::class)->record($actor, 'ENROLLMENT_'.$source->status->value, 'student_enrollment', $source->id, $before, $source->only(StudentEnrollment::AUDIT_FIELDS), 'promotions');
                 }
-                $outcome = PromotionOutcome::create(['promotion_batch_id' => $batch->id, 'student_id' => $source->student_id, 'source_enrollment_id' => $source->id, 'target_enrollment_id' => $new?->id, 'action' => $row['action'], 'notes' => $row['notes']]);
+                $outcome = PromotionOutcome::create(['promotion_batch_id' => $batch->id, 'student_id' => $source->student_id, 'source_enrollment_id' => $source->id, 'target_enrollment_id' => $new?->id, 'action' => $row['action'], 'notes' => $row['notes'], ...Arr::only($row, ['departure_date', 'destination_school'])]);
                 app(AuditLogger::class)->record($actor, 'STUDENT_'.$row['action'], 'promotion_outcome', $outcome->id, [], Arr::except($outcome->getAttributes(), ['created_at', 'updated_at']), 'promotions');
             }
-            app(AuditLogger::class)->record($actor,'PROMOTION_BATCH_COMPLETED','promotion_batch',$batch->id,[],['count' => count($rows), 'mode' => $batch->mode],'promotions');
+            app(AuditLogger::class)->record($actor, 'PROMOTION_BATCH_COMPLETED', 'promotion_batch', $batch->id, [], ['count' => count($rows), 'mode' => $batch->mode], 'promotions');
 
             return $batch;
         });

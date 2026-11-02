@@ -34,7 +34,7 @@ class EmployeeTest extends TestCase
 
     private function payload(array $extra = []): array
     {
-        return array_merge(['employee_number' => 'EMP/001', 'first_name' => 'Alex', 'last_name' => 'Sharma', 'employee_type' => 'ACCOUNTANT', 'joining_date' => '2020-04-01'], $extra);
+        return array_merge(['aadhaar_number' => '234567890123', 'employee_number' => 'EMP/001', 'first_name' => 'Alex', 'last_name' => 'Sharma', 'employee_type' => 'ACCOUNTANT', 'joining_date' => '2020-04-01'], $extra);
     }
 
     private function employee(User $owner, array $extra = []): Employee

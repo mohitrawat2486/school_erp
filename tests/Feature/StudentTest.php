@@ -34,7 +34,7 @@ class StudentTest extends TestCase
 
     private function payload(array $extra = []): array
     {
-        return array_merge(['admission_number' => 'EMP/001', 'first_name' => 'Alex', 'last_name' => 'Sharma', 'admission_date' => '2020-04-01'], $extra);
+        return array_merge(['aadhaar_number' => '234567890123', 'admission_number' => 'EMP/001', 'first_name' => 'Alex', 'last_name' => 'Sharma', 'admission_date' => '2020-04-01'], $extra);
     }
 
     private function student(User $owner, array $extra = []): Student

@@ -76,7 +76,7 @@ Scoped implicit model binding returns 404 for foreign-school employee IDs, inclu
 The service independently checks ownership/permissions before file storage and again after locking the school.
 It re-reads the acting account's permissions so revoked access is not accepted from a stale model instance.
 
-Required fields are employee_number, first_name, employee_type and joining_date. Other fields are optional,
+Required fields are employee_number, first_name, employee_type, joining_date and aadhaar_number. Other fields are optional,
 including last_name to support people with a single name. Employee email is not a login identifier and is not
 required to be unique. Dates use YYYY-MM-DD; birth dates cannot be future or on/after the joining date.
 Future joining dates are allowed. No minimum age or phone-country format is imposed by this phase.
@@ -137,3 +137,24 @@ but require a future retention policy. The local MySQL version is unchanged.
 
 Teacher Profiles (plan Phase 5): extend employee records with one teacher profile per employee,
 qualification/specialization/experience/status, authorization, auditing and tests.
+
+## Employee form redesign
+
+Reviewed `CLAUDE.md` before implementation. Add/Edit Employee now uses the full workspace width with shared form cards for personal details, employment details, optional contact information and an optional photo. Wide screens place the cards in two columns; phones stack them with clear Save/Cancel actions. Existing field names, required inputs, validation rules, permissions, private-photo delivery and save endpoints are preserved. The shared Edit form uses the same presentation.
+
+Fields reuse the existing styled field component, with autocomplete hints and associated error messages. Gender, employee type, address and photo now include inline errors. Date of birth retains its server rule and adds a matching maximum date in the browser. Photo selection provides an immediate local preview, restoring the current portrait or placeholder when cleared, reset or unable to load; image validation remains on the server. The preview script releases temporary object URLs and introduces no dependency. No backend or database changes were required.
+
+Verification: **22 employee/photo tests / 186 assertions passed** on isolated `school_erp_testing`. Production build, Blade compilation, JavaScript syntax and whitespace checks passed. Chromium checked Create/Edit, retained input after validation errors, required fields, accessible errors, photo preview/reset/fallback, original form payload and horizontal overflow at 320, 390, 768, 1024, 1440 and 1920 pixels. Fixtures were captured in a rolled-back test transaction; browser requests were intercepted and performed no writes.
+
+Previews: [desktop employee form](previews/employee-create-1440.png), [mobile employee form](previews/employee-create-390.png).
+
+## Aadhaar identification
+
+Employees and students require `aadhaar_number` in their Add/Edit forms. The shared `AadhaarNumber` rule checks exactly 12 ASCII digits without spaces in both requests and services. Validation checks the format only. Existing permissions govern editing. Missing, empty and invalid values are rejected on creation and editing, including direct service calls. Existing records without Aadhaar must supply one when next saved. The student field is always visible in Student details rather than inside the optional personal-details disclosure. The nullable text columns use Laravel's encrypted cast and are excluded from model JSON. Profiles display `XXXX XXXX` followed by the final four digits; authorized editors see the full number in the edit form. AuditLogger redacts old/new Aadhaar values recursively. Keep the application's encryption key with protected backups, as it is needed to decrypt these values.
+
+Migration `2026_11_02_080000_add_aadhaar_number_to_employees_and_students.php` is applied to the application database. Existing records remain null. No identification documents are uploaded by this change.
+
+Initial implementation verification (before mandatory enforcement): **122 related tests / 978 assertions passed** across identification, employee/student, enrollment/departure/progression, audit and guardian editors. The 18 identification tests cover encryption, audit redaction, masked profiles, hidden JSON, optional/invalid values, edit/clear/preserve behavior (before mandatory enforcement), no-op saves, validation recovery, permissions, school scope and rollback. Chromium checked optional inputs, numeric format validation, clearing, restored drafts/errors and masked profiles at 320, 390, 768 and 1440 pixels. Production build, Blade compilation, targeted Pint, PHP syntax and whitespace checks passed. Browser fixtures used rolled-back testing transactions and intercepted requests.
+
+
+Mandatory Aadhaar verification: **121 related tests / 1,000 assertions passed**. Missing, null, blank and invalid values are rejected for creation and editing, including older records and direct service calls. Valid updates, encryption, masked profiles, audit redaction, guardian edits and enrollment/departure saves remain covered. The required student input sits in the always-visible Student details grid. Existing null database values are retained until users supply a number on their next edit; no new migration or automatic data population is needed. Browser checks passed at 320, 390, 768 and 1440 pixels for required inputs, blank rejection, errors, restored drafts and masked profiles.

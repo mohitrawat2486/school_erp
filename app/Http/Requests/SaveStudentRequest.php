@@ -2,11 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Guardian;
 use App\Models\Student;
-use App\Support\CurrentSchool;
+use App\Models\StudentEnrollment;
+use App\Support\AdmissionGuardianRules;
+use App\Support\GuardianEditorRules;
 use App\Support\RasterImageRules;
+use App\Support\StudentDepartureRules;
+use App\Support\StudentEnrollmentRules;
+use App\Support\StudentRules;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class SaveStudentRequest extends FormRequest
 {
@@ -14,24 +19,33 @@ class SaveStudentRequest extends FormRequest
     {
         $student = $this->route('student');
 
-        return $student ? $this->user()->can('update', $student) : $this->user()->can('create', Student::class);
+        $allowed = $student ? $this->user()->can('update', $student) : $this->user()->can('create', Student::class);
+        if ((! $student && in_array($this->input('guardian_mode'), ['new', 'existing'], true)) || $this->filled('guardians_present')) {
+            $allowed = $allowed && $this->user()->can('create', Guardian::class);
+        }
+        if ($this->input('enrollment.action') === 'save' || in_array($this->input('departure.action'), ['WITHDRAW', 'TRANSFER'], true)) {
+            $allowed = $allowed && $this->user()->can('create', StudentEnrollment::class);
+        }
+
+        return $allowed;
     }
 
     public function rules(): array
     {
-        $unique = Rule::unique('students', 'admission_number')->where('school_id', app(CurrentSchool::class)->id());
-        if ($student = $this->route('student')) {
-            $unique->ignore($student->id);
-        }
-
-        return [
-            'admission_number' => ['required', 'string', 'max:50', $unique],
-            'first_name' => ['required', 'string', 'max:100'], 'middle_name' => ['nullable', 'string', 'max:100'], 'last_name' => ['nullable', 'string', 'max:100'],
-            'gender' => ['nullable', Rule::in(array_keys(Student::GENDERS))],
-            'blood_group' => ['nullable', Rule::in(Student::BLOOD_GROUPS)],
-            'date_of_birth' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today', 'before:admission_date'],
-            'admission_date' => ['required', 'date_format:Y-m-d'], 'address' => ['nullable', 'string', 'max:2000'],
+        return StudentRules::rules($this->route('student')) + [
             'photo' => RasterImageRules::rules(), 'school_id' => ['prohibited'], 'status' => ['prohibited'], 'photo_path' => ['prohibited'], 'id' => ['prohibited'], 'user_id' => ['prohibited'], 'class_id' => ['prohibited'], 'section_id' => ['prohibited'], 'roll_number' => ['prohibited'],
-        ];
+        ] + AdmissionGuardianRules::rules(! $this->route('student')) + GuardianEditorRules::rules($this->all(), $this->route('student')) + StudentEnrollmentRules::rules($this->all()) + StudentDepartureRules::rules($this->all());
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (in_array($this->input('guardians_present'), [1, '1'], true) && ! $this->has('guardians')) {
+            $this->merge(['guardians' => []]);
+        }
+    }
+
+    public function attributes(): array
+    {
+        return ['guardian.first_name' => 'guardian first name', 'guardian.last_name' => 'guardian last name', 'guardian.phone' => 'guardian phone', 'guardian.alternate_phone' => 'guardian alternate phone', 'guardian.email' => 'guardian email', 'guardian.address' => 'guardian address', 'guardian_id' => 'existing guardian', 'guardian_relationship' => 'relationship to student', 'guardian_emergency' => 'emergency contact setting'];
     }
 }
